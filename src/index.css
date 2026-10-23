@@ -1,13 +1,25 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
-@import "@fontsource-variable/geist";
+@import "@fontsource-variable/roboto-mono";
 
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
+    /* Figma: Display/43 Bold */
+    --text-display: 43px;
+    --text-display--line-height: 70px;
+    --text-display--font-weight: 700;
+    --text-display--letter-spacing: 0em;
+    /* Figma: texto de apoio */
+    --text-body: 14px;
+    --text-body--line-height: 24px;
+    --text-body--font-weight: 400;
+    --text-body--letter-spacing: 0em;
+    --color-ink: var(--ink);
     --font-heading: var(--font-sans);
-    --font-sans: 'Geist Variable', sans-serif;
+    --font-sans: "Roboto Mono Variable", monospace;
+    --color-text-secondary: var(--text-secondary);
     --color-sidebar-ring: var(--sidebar-ring);
     --color-sidebar-border: var(--sidebar-border);
     --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -35,6 +47,7 @@
     --color-primary: var(--primary);
     --color-popover-foreground: var(--popover-foreground);
     --color-popover: var(--popover);
+    --color-surface-card: var(--surface-card);
     --color-card-foreground: var(--card-foreground);
     --color-card: var(--card);
     --color-foreground: var(--foreground);
@@ -46,17 +59,45 @@
     --radius-2xl: calc(var(--radius) * 1.8);
     --radius-3xl: calc(var(--radius) * 2.2);
     --radius-4xl: calc(var(--radius) * 2.6);
+    /* Figma: botão Explorar */
+    --radius-button: 6px;
+    /* Figma: título mobile */
+    --text-display-mobile: 18px;
+    --text-display-mobile--line-height: 29px;
+    --text-display-mobile--font-weight: 700;
+    --text-display-mobile--letter-spacing: 0em;
+    /* Figma: texto de apoio mobile */
+    --text-body-mobile: 12px;
+    --text-body-mobile--line-height: 18px;
+    --text-body-mobile--font-weight: 400;
+    --text-body-mobile--letter-spacing: 0em;
+    /* Figma: ação de texto mobile */
+    --text-action-mobile: 12px;
+    --text-action-mobile--line-height: 14px;
+    --text-action-mobile--font-weight: 700;
+    --text-action-mobile--letter-spacing: 0em;
+    --color-text-accent: var(--text-accent);
 }
 
 :root {
-    --background: oklch(1 0 0);
-    --foreground: oklch(0.145 0 0);
-    --card: oklch(1 0 0);
-    --card-foreground: oklch(0.145 0 0);
+    /* Figma: Color/Text Secondary */
+    --text-secondary: #cfb28c;
+    /* Figma: Text/Accent */
+    --text-accent: #e89b55;
+    /* Figma: Color/Ink */
+    --ink: #140d0a;
+    --background: var(--ink);
+    /* Figma: Color/Foreground */
+    --foreground: #f5f1eb;
+    /* Figma: Color/Surface Card */
+    --surface-card: #241612;
+    --card: var(--surface-card);
+    --card-foreground: var(--foreground);
     --popover: oklch(1 0 0);
     --popover-foreground: oklch(0.145 0 0);
-    --primary: oklch(0.205 0 0);
-    --primary-foreground: oklch(0.985 0 0);
+    /* Figma: Color/Primary */
+    --primary: #d28a4c;
+    --primary-foreground: var(--ink);
     --secondary: oklch(0.97 0 0);
     --secondary-foreground: oklch(0.205 0 0);
     --muted: oklch(0.97 0 0);
@@ -84,14 +125,14 @@
 }
 
 .dark {
-    --background: oklch(0.145 0 0);
-    --foreground: oklch(0.985 0 0);
-    --card: oklch(0.205 0 0);
-    --card-foreground: oklch(0.985 0 0);
+    --background: var(--ink);
+    --foreground: #f5f1eb;
+    --card: var(--surface-card);
+    --card-foreground: var(--foreground);
     --popover: oklch(0.205 0 0);
     --popover-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.922 0 0);
-    --primary-foreground: oklch(0.205 0 0);
+    --primary: #d28a4c;
+    --primary-foreground: var(--ink);
     --secondary: oklch(0.269 0 0);
     --secondary-foreground: oklch(0.985 0 0);
     --muted: oklch(0.269 0 0);
