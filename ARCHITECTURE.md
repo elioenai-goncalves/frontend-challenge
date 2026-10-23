@@ -179,3 +179,59 @@ resourceId corresponde ao id do pedido, e version à sua versão.
 - Após reconexão, recursos ativos são consultados via REST.
 - REST e eventos leem o mesmo estado simulado.
 - Listeners são removidos quando seu ciclo de vida termina.
+
+## Cliente HTTP e estado remoto
+
+### Transporte HTTP
+
+- As chamadas REST usam a instância Axios de
+  `src/lib/api-client.ts`.
+- A URL base vem de `VITE_API_BASE_URL`, com fallback para `/api`.
+- Os contratos TypeScript ficam em `src/contracts/api.ts`.
+- `setApiAccessToken` permite configurar ou remover o token
+  utilizado no cabeçalho Authorization: Bearer.
+- O token é mantido apenas em memória nessa camada.
+- A autenticação completa e a recuperação da sessão serão
+  integradas na Issue 12.
+- Mensagens da API são lidas de `ApiErrorResponse.error.message`.
+- A interface também trata erros comuns sem resposta HTTP.
+- Respostas com Content-Type `text/html` são rejeitadas.
+- Essa verificação não substitui a validação completa do JSON
+  em tempo de execução.
+
+### Cache e consultas
+
+- O QueryClient fica em `src/lib/query-client.ts`.
+- O QueryClientProvider disponibiliza o cliente à aplicação.
+- Configuração explícita:
+  - staleTime: 30000.
+  - retry: 1.
+  - refetchOnWindowFocus: false.
+- As chaves de listagem seguem o formato:
+  ['nfts', userId, 'list', params].
+- Visitantes usam userId igual a null.
+- A integração da sessão deverá fornecer o identificador do
+  usuário correspondente ao token.
+- O hook usa ListNftsRequest e ListNftsResponse.
+- Filtros em arrays são enviados como parâmetros repetidos.
+- O AbortSignal recebido pela queryFn é repassado ao Axios.
+- Não há persistência de cache configurada nesta etapa.
+
+### Sincronização e limites desta entrega
+
+- Esta etapa configura a infraestrutura de consultas REST.
+- A integração de sessão e a limpeza do cache no logout
+  pertencem à Issue 12.
+- Os handlers REST do MSW pertencem à Issue 07.
+- A atualização por eventos e a reconciliação após reconexão
+  pertencem às Issues 10 e 11.
+- A tela atual é temporária e serve para diagnóstico.
+
+### Verificações manuais da Issue 04
+
+- Resposta HTML rejeitada e exibida como erro na interface.
+- Estado de sucesso verificado com JSON estático temporário
+  servido pela rede.
+- O arquivo temporário foi removido após a verificação.
+- A validação integrada com os handlers reais do MSW continua
+  prevista para a Issue 07.

@@ -31,10 +31,10 @@ export type ApiErrorCode =
 
 export interface ApiErrorResponse {
   error: {
-    code: ApiErrorCode;
-    message: string;
-    fieldErrors?: Record<string, string[]>;
-  };
+    code: ApiErrorCode
+    message: string
+    fieldErrors?: Record<string, string>
+  }
 }
 
 // ======================================================
