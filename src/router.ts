@@ -1,45 +1,41 @@
-import {
-  createRootRoute,
-  createRoute,
-  createRouter,
-  redirect,
-} from '@tanstack/react-router'
-
-import {
-  hasDevSession,
-  validateLoginSearch,
-} from '@/lib/dev-session'
+import { createRootRoute, createRoute, createRouter, redirect } from '@tanstack/react-router'
 
 import { RouteLayout } from '@/components/route-layout'
-
+import { setSessionExpiredHandler } from '@/lib/api-client'
 import { validateCatalogSearch } from '@/lib/catalog-search'
+import { validateLoginSearch } from '@/lib/login-search'
+import { endSession, getSession, initSession } from '@/lib/session'
 
+import { LoginPage } from '@/pages/login-page'
+import { RegisterPage } from '@/pages/register-page'
 import {
   CartPage,
   CheckoutPage,
   HomePage,
-  LoginPage,
   NftDetailsPage,
   NotFoundPage,
   OrderConfirmationPage,
   ProfilePage,
-  RegisterPage,
   WalletsPage,
 } from '@/pages/route-pages'
 
-function requireSession({
-  location,
-}: {
-  location: { href: string }
-}) {
-  if (!hasDevSession()) {
+async function requireSession({ location }: { location: { href: string } }) {
+  await initSession()
+
+  if (getSession().status !== 'authenticated') {
     throw redirect({
       to: '/login',
-      search: {
-        redirect: location.href,
-      },
+      search: { redirect: location.href },
       replace: true,
     })
+  }
+}
+
+async function redirectIfAuthenticated() {
+  await initSession()
+
+  if (getSession().status === 'authenticated') {
+    throw redirect({ to: '/', search: {}, replace: true })
   }
 }
 
@@ -85,12 +81,15 @@ const loginRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/login',
   validateSearch: validateLoginSearch,
+  beforeLoad: redirectIfAuthenticated,
   component: LoginPage,
 })
 
 const registerRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/register',
+  validateSearch: validateLoginSearch,
+  beforeLoad: redirectIfAuthenticated,
   component: RegisterPage,
 })
 
@@ -122,6 +121,21 @@ const routeTree = rootRoute.addChildren([
 
 export const router = createRouter({
   routeTree,
+})
+
+const PRIVATE_PATH = /^\/(checkout|profile|wallets)(\/|$)|^\/orders\//
+
+// Sessão expirada em qualquer chamada autenticada: em rota privada, volta ao
+// login guardando o destino; em rota pública, apenas encerra a sessão.
+setSessionExpiredHandler(() => {
+  if (getSession().status !== 'authenticated') return
+
+  const { href, pathname } = router.state.location
+  endSession()
+
+  if (PRIVATE_PATH.test(pathname)) {
+    void router.navigate({ to: '/login', search: { redirect: href }, replace: true })
+  }
 })
 
 declare module '@tanstack/react-router' {

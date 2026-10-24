@@ -282,19 +282,29 @@ resourceId corresponde ao id do pedido, e version à sua versão.
   e reinicia a paginação ao alterar a busca.
 - A interface definitiva dos filtros pertence à Issue 13.
 
-### Proteção provisória
+## Sessão e autenticação
 
-- Rotas privadas usam beforeLoad.
-- Visitantes são direcionados ao login com o destino original
-  no parâmetro redirect.
+- O token e a validade ficam no `localStorage` (`frontend-challenge:session`).
+  O usuário não é guardado: é obtido de `GET /auth/session` na abertura do app,
+  antes da primeira renderização (`initSession` em `src/main.tsx`).
+- O token também é mantido em memória no cliente Axios (`setApiAccessToken`).
+- Se a recuperação receber 401, a sessão é descartada. Falhas de rede ou 5xx não
+  apagam o token.
+- Rotas privadas usam `beforeLoad`, que aguarda a recuperação da sessão e
+  redireciona para `/login?redirect=<destino>`. Login e cadastro redirecionam
+  usuários autenticados para o início.
 - O destino de retorno é validado para permanecer na mesma origem.
-- A sessão de teste usa sessionStorage e só é aceita em desenvolvimento.
-- O controle de simulação não está disponível no build de produção.
-- A simulação não configura token nem autentica chamadas HTTP.
-- A autenticação real substituirá a simulação na Issue 12.
+- Um 401 `SESSION_EXPIRED` ou `UNAUTHORIZED` com token ativo encerra a sessão.
+  Em rota privada, leva ao login preservando o destino; em rota pública, apenas
+  encerra a sessão.
+- Login, cadastro, logout e expiração limpam o cache do TanStack Query
+  (`queryClient.clear()`) e executam os callbacks registrados em `onSessionEnd`
+  (usado pela conexão Socket.IO na Issue 11).
+- Armazenar o token em `localStorage` expõe o dado a ataques de script (XSS).
+  É uma simplificação da simulação; uma API real usaria cookie `httpOnly`.
 - Guards de navegação não substituem autorização na API.
-- A confirmação ainda não valida existência, propriedade ou estado
-  do pedido; essa integração pertence ao fluxo de pedidos.
+- Os formulários de login e cadastro seguem os tokens do projeto e têm
+  aparência provisória até a conferência com os frames do Figma.
 
 ### Verificações manuais
 

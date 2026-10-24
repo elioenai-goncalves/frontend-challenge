@@ -1,11 +1,7 @@
 import {
   Link,
-  useRouter,
   useSearch,
 } from '@tanstack/react-router'
-
-import { startDevSession } from '@/lib/dev-session'
-
 interface PlaceholderPageProps {
   title: string
   description: string
@@ -113,54 +109,6 @@ export function OrderConfirmationPage() {
     <PlaceholderPage
       title="Confirmação do pedido"
       description="O recibo será implementado na Issue 19."
-    />
-  )
-}
-
-export function LoginPage() {
-  const router = useRouter()
-  const search = useSearch({ from: '/login' })
-
-  async function handleDevLogin() {
-    startDevSession()
-
-    await router.invalidate()
-
-    router.history.push(search.redirect ?? '/')
-  }
-
-  return (
-    <section>
-      <h1 className="text-2xl font-bold">Login</h1>
-
-      <p className="mt-4 text-text-secondary">
-        A autenticação real será implementada na Issue 12.
-      </p>
-
-      {import.meta.env.DEV && (
-        <div className="mt-6">
-          <p className="mb-3 text-sm text-text-secondary">
-            Simulação disponível somente em desenvolvimento.
-          </p>
-
-          <button
-            type="button"
-            onClick={handleDevLogin}
-            className="rounded bg-primary px-4 py-2 font-bold text-primary-foreground"
-          >
-            Simular sessão para testar as rotas
-          </button>
-        </div>
-      )}
-    </section>
-  )
-}
-
-export function RegisterPage() {
-  return (
-    <PlaceholderPage
-      title="Cadastro"
-      description="O cadastro será implementado na Issue 12."
     />
   )
 }
