@@ -5,7 +5,7 @@ import { hashPassword, randomSalt } from '../password'
 import { authenticate, errorResponse, readJson } from '../utils'
 
 const SESSION_DURATION_MS = 8 * 60 * 60 * 1000
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+export const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 export function toUser(user: StoredUser): User {
   return { id: user.id, name: user.name, email: user.email, avatarUrl: user.avatarUrl }
