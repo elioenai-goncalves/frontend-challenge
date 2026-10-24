@@ -235,3 +235,74 @@ resourceId corresponde ao id do pedido, e version à sua versão.
 - O arquivo temporário foi removido após a verificação.
 - A validação integrada com os handlers reais do MSW continua
   prevista para a Issue 07.
+
+## Roteamento
+
+### Organização
+
+- TanStack Router configurado por código em `src/router.ts`.
+- RouterProvider renderizado por `src/App.tsx`.
+- QueryClientProvider mantido em `src/main.tsx`.
+- Layout provisório em `src/components/route-layout.tsx`.
+- Páginas provisórias em `src/pages/route-pages.tsx`.
+- O layout definitivo seguindo o Figma pertence à Issue 06.
+
+### Mapa de rotas
+
+| Caminho | Tela | Acesso |
+| --- | --- | --- |
+| / | Início | Público |
+| /nfts/$nftId | Detalhes do NFT | Público |
+| /cart | Carrinho | Público |
+| /checkout | Pagamento | Privado |
+| /orders/$orderId/confirmation | Confirmação | Privado |
+| /login | Login | Público |
+| /register | Cadastro | Público |
+| /profile | Perfil | Privado |
+| /wallets | Carteiras | Privado |
+
+- Endereços não reconhecidos exibem a página 404.
+- A página 404 possui link para o início.
+- Os caminhos foram definidos como organização interna do projeto.
+
+### Parâmetros do catálogo
+
+- Validados em `src/lib/catalog-search.ts`.
+- O objeto validado segue ListNftsRequest.
+- Campos: search, collectionIds, categories, networks,
+  minPriceEth, maxPriceEth, sort, page e pageSize.
+- Página padrão: 1.
+- Tamanho padrão: 12; máximo: 48.
+- Ordenação padrão: recent.
+- Redes aceitas: ethereum, polygon e solana.
+- Preços são devolvidos como strings decimais não negativas.
+- Valores inválidos são descartados ou recebem fallback.
+- A validação não reescreve automaticamente a URL.
+- A navegação de demonstração preserva os parâmetros anteriores
+  e reinicia a paginação ao alterar a busca.
+- A interface definitiva dos filtros pertence à Issue 13.
+
+### Proteção provisória
+
+- Rotas privadas usam beforeLoad.
+- Visitantes são direcionados ao login com o destino original
+  no parâmetro redirect.
+- O destino de retorno é validado para permanecer na mesma origem.
+- A sessão de teste usa sessionStorage e só é aceita em desenvolvimento.
+- O controle de simulação não está disponível no build de produção.
+- A simulação não configura token nem autentica chamadas HTTP.
+- A autenticação real substituirá a simulação na Issue 12.
+- Guards de navegação não substituem autorização na API.
+- A confirmação ainda não valida existência, propriedade ou estado
+  do pedido; essa integração pertence ao fluxo de pedidos.
+
+### Verificações manuais
+
+- Navegação pelas nove rotas e página 404.
+- Redirecionamento de visitante em rotas privadas.
+- Retorno ao destino após simular sessão em desenvolvimento.
+- Encerramento da sessão provisória.
+- Parâmetros válidos e inválidos do catálogo.
+- Histórico e refresh dos parâmetros da URL.
+- Acesso direto e refresh das rotas no preview.
+- Typecheck, lint e build executados com sucesso.
