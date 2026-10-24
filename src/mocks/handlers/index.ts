@@ -5,9 +5,11 @@ import { nftHandlers } from './nfts'
 import { orderHandlers } from './orders'
 import { profileHandlers } from './profile'
 import { quoteHandlers } from './quotes'
+import { scenarioHandlers } from './scenario'
 import { walletHandlers } from './wallets'
 
 export const handlers = [
+  ...scenarioHandlers,
   ...authHandlers,
   ...nftHandlers,
   ...favoriteHandlers,

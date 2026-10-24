@@ -49,6 +49,39 @@ inicial, execute no console do navegador:
   desmarcado em Service Workers.
 - Requer Node.js 22 ou superior (MSW 3).
 
+### Cenários
+
+O cenário ativo vem, nesta ordem, de: escolha em tempo de execução
+(`window.mocks.setScenario('nome')`, gravada no `localStorage`), da variável
+`VITE_MOCK_SCENARIO` ou do padrão `success`. `window.mocks.reset()` apaga a
+escolha em tempo de execução e restaura o estado inicial.
+
+    window.mocks.scenarios          // lista os cenários
+    window.mocks.setScenario('empty')
+    window.mocks.scenario()         // cenário ativo
+
+| Cenário | Comportamento |
+| --- | --- |
+| success | Padrão. |
+| empty | Catálogo sem resultados. |
+| latency | Atraso de 300 a 2300 ms, fixo para a mesma chamada. |
+| out-of-order | Listagens de NFTs respondem em 1500, 200 e 800 ms em ciclo. |
+| network-error | Recursos de negócio falham sem resposta HTTP. |
+| http-4xx | Recursos de negócio devolvem 403. |
+| http-5xx | Recursos de negócio devolvem 503. |
+| session-expired | Chamadas autenticadas devolvem 401 SESSION_EXPIRED. |
+| register-conflict | Cadastro devolve 409. |
+| validation-error | Cadastro, perfil, senha, carteiras e pedido devolvem 422. |
+| coupon-invalid | Cupom enviado devolve 400 INVALID_COUPON. |
+| coupon-expired | Cupom enviado devolve 400 EXPIRED_COUPON. |
+| price-changed | Primeiro pedido falha com 409 (preço sobe 10%); nova cotação passa. |
+| sold-out | Primeiro pedido falha com 409 OUT_OF_STOCK. |
+| order-timeout | Pedido criado; resposta perdida após 3 s (erro de rede). Uma vez. |
+| payment-refused | Pedido gravado como rejected, sem baixar estoque. |
+| payment-confirmed | Igual a success. |
+
+Cada cenário é determinístico: a mesma configuração produz o mesmo resultado.
+
 # React + TypeScript + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.

@@ -488,3 +488,67 @@ Limites da validação
   Não representam testes automatizados.
 - Cenários de falha e latência (Issue 08) e idempotência de pedidos
   (Issue 09) não foram verificados.
+
+  ## Cenários dos mocks
+
+- `src/mocks/scenario.ts` define a lista de cenários, a escolha ativa e o
+  estado de execução (contadores e perturbações aplicadas uma única vez).
+- `src/mocks/handlers/scenario.ts` é um handler de `/api/*` colocado antes dos
+  demais. Ele aplica atraso, falhas e erros, ou não devolve nada, e então o MSW
+  segue para o handler do recurso.
+- Atrasos são derivados do método e do endereço, sem aleatoriedade.
+- `price-changed`, `sold-out` e `order-timeout` atuam uma única vez por
+  ativação do cenário, para o fluxo de recuperação ser exercitável.
+- O pedido valida também o preço da cotação contra o catálogo atual.
+- `order-timeout` usa erro de rede no lugar de um timeout do cliente; o cliente
+  Axios ainda não tem timeout configurado (Issue 18).
+- Idempotência de pedidos continua na Issue 09.
+
+### Verificações manuais da Issue 08
+
+Mecanismo de cenários
+- Lista de cenários disponível em `window.mocks.scenarios`.
+- Troca de cenário em tempo de execução com `window.mocks.setScenario`.
+- Cenário padrão `success`.
+- `window.mocks.reset()` restaura o banco e o cenário padrão.
+- Cada cenário repetido produz o mesmo resultado.
+
+Catálogo e rede
+- `empty`: listagem vazia, com detalhe de NFT ainda disponível.
+- `latency`: atraso entre 300 e 2300 ms, igual para a mesma chamada.
+- `out-of-order`: consultas de listagem terminam fora da ordem em que
+  foram enviadas.
+- `network-error`: falha sem resposta HTTP nos recursos de negócio.
+- `http-4xx`: resposta 403 nos recursos de negócio.
+- `http-5xx`: resposta 503 nos recursos de negócio.
+
+Conta e formulários
+- `session-expired`: chamadas autenticadas respondem 401 `SESSION_EXPIRED`.
+- `register-conflict`: cadastro responde 409.
+- `validation-error`: cadastro, perfil, senha e carteiras respondem 422 com
+  `fieldErrors`.
+
+Cotação e pedido
+- `coupon-invalid`: cupom enviado responde 400 `INVALID_COUPON`;
+  cotação sem cupom segue normal.
+- `coupon-expired`: cupom enviado responde 400 `EXPIRED_COUPON`.
+- `price-changed`: primeiro pedido responde 409; nova cotação com o novo
+  preço é aceita.
+- `sold-out`: primeiro pedido responde 409 `OUT_OF_STOCK`.
+- `payment-refused`: pedido gravado como `rejected`, sem baixa de estoque
+  e com o carrinho preservado.
+- `payment-confirmed`: pedido confirmado.
+- `order-timeout`: pedido criado, resposta perdida com erro de rede, carrinho
+  esvaziado e estoque baixado.
+
+Qualidade
+- `npm run typecheck`, `npm run lint` e `npm run build` executados com
+  sucesso.
+
+Limites da validação
+- Verificações manuais, feitas por chamadas no Console do navegador.
+- O navegador desativa o Service Worker do MSW quando fica ocioso; nesse
+  caso é preciso recarregar a página.
+- Não há cenário genérico de lentidão constante nem de timeout de
+  requisição; o timeout do cliente Axios será tratado com a Issue 18.
+- Recuperação do pedido por idempotência depende da Issue 09.
