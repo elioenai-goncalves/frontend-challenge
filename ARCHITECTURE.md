@@ -306,3 +306,77 @@ resourceId corresponde ao id do pedido, e version à sua versão.
 - Histórico e refresh dos parâmetros da URL.
 - Acesso direto e refresh das rotas no preview.
 - Typecheck, lint e build executados com sucesso.
+
+## Layout compartilhado e componentes de estado
+
+### Organização
+
+- DesktopHeader: cabeçalho desktop e variante com divisória.
+- SiteFooter: rodapé institucional desktop.
+- MobileNavigation: busca, navegação inferior e menu mobile.
+- RouteLayout: composição dos elementos conforme a rota.
+- LoadingSkeleton, EmptyState e ErrorState: componentes reutilizáveis.
+
+### Composição por rota
+
+- Cabeçalho desktop nas telas previstas, exceto confirmação.
+- Divisória no início, login, cadastro, perfil e carteiras.
+- Rodapé desktop no início, detalhe do NFT, carrinho e pagamento.
+- Mobile: busca e navegação inferior no início.
+- Demais páginas atendidas pela navegação mobile usam controles
+  superiores simplificados.
+- Login, cadastro e confirmação não recebem a navegação mobile
+  compartilhada.
+- O breakpoint utilizado para a variante desktop é lg.
+
+### Assets e adaptações
+
+- Fundo da barra inferior e símbolo central exportados do Figma
+  como SVGs locais em src/assets/navigation.
+- Barra inferior com largura máxima de 414px, centralizada
+  em larguras intermediárias.
+- Botão superior mobile: 45 × 45px e raio de 14px.
+- Botão central dimensionado proporcionalmente à referência
+  de 65px em uma barra de 414px.
+- O círculo central ainda usa preenchimento sólido no lugar
+  do gradiente original.
+- Ícones laterais e do cabeçalho usam aproximações com Lucide.
+- Redes sociais do rodapé são apresentadas por nome,
+  não pelos ícones originais.
+- Alguns espaçamentos e a cor da faixa da marca são aproximações.
+
+### Navegação e limites funcionais
+
+- Mercado e busca desktop levam ao catálogo na rota inicial.
+- Mercado recebe destaque no detalhe, carrinho e pagamento.
+- O menu mobile aberto é uma adaptação de UX:
+  não existe frame desse estado na referência enviada.
+- O símbolo central abre o menu por decisão de implementação;
+  sua função original no protótipo não foi confirmada.
+- O painel utiliza dialog nativo aberto com showModal.
+- O fechamento devolve o foco ao botão de abertura quando
+  ele continua disponível no documento.
+- O painel é fechado ao mudar para a largura desktop.
+- Favoritos permanece desabilitado nesta etapa.
+- Newsletter e páginas auxiliares não simulam sucesso funcional.
+- Contatos do rodapé são ilustrativos do mockup.
+- Quantidade do carrinho e menu de usuário com dados reais
+  permanecem para as Issues 16 e 12.
+
+### Interpretação do escopo
+
+- O texto original da Issue 06 previa cabeçalho e rodapé
+  em todas as rotas.
+- A implementação segue as variantes identificadas nos frames,
+  incluindo ausência de rodapé institucional nas telas mobile
+  fornecidas e outras exceções de composição.
+- Essa interpretação foi acordada durante a implementação.
+
+### Estados reutilizáveis
+
+- LoadingSkeleton recebe dimensões pela propriedade className.
+- O shimmer é desativado com prefers-reduced-motion: reduce.
+- EmptyState recebe título e descrição opcional.
+- ErrorState recebe mensagem, callback de nova tentativa
+  e indicação opcional de tentativa em andamento.
+- A integração com consultas reais ocorrerá nas issues das telas.

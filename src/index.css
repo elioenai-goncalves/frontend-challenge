@@ -6,166 +6,298 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-    /* Figma: Display/43 Bold */
-    --text-display: 43px;
-    --text-display--line-height: 70px;
-    --text-display--font-weight: 700;
-    --text-display--letter-spacing: 0em;
-    /* Figma: texto de apoio */
-    --text-body: 14px;
-    --text-body--line-height: 24px;
-    --text-body--font-weight: 400;
-    --text-body--letter-spacing: 0em;
-    --color-ink: var(--ink);
-    --font-heading: var(--font-sans);
-    --font-sans: "Roboto Mono Variable", monospace;
-    --color-text-secondary: var(--text-secondary);
-    --color-sidebar-ring: var(--sidebar-ring);
-    --color-sidebar-border: var(--sidebar-border);
-    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-    --color-sidebar-accent: var(--sidebar-accent);
-    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-    --color-sidebar-primary: var(--sidebar-primary);
-    --color-sidebar-foreground: var(--sidebar-foreground);
-    --color-sidebar: var(--sidebar);
-    --color-chart-5: var(--chart-5);
-    --color-chart-4: var(--chart-4);
-    --color-chart-3: var(--chart-3);
-    --color-chart-2: var(--chart-2);
-    --color-chart-1: var(--chart-1);
-    --color-ring: var(--ring);
-    --color-input: var(--input);
-    --color-border: var(--border);
-    --color-destructive: var(--destructive);
-    --color-accent-foreground: var(--accent-foreground);
-    --color-accent: var(--accent);
-    --color-muted-foreground: var(--muted-foreground);
-    --color-muted: var(--muted);
-    --color-secondary-foreground: var(--secondary-foreground);
-    --color-secondary: var(--secondary);
-    --color-primary-foreground: var(--primary-foreground);
-    --color-primary: var(--primary);
-    --color-popover-foreground: var(--popover-foreground);
-    --color-popover: var(--popover);
-    --color-surface-card: var(--surface-card);
-    --color-card-foreground: var(--card-foreground);
-    --color-card: var(--card);
-    --color-foreground: var(--foreground);
-    --color-background: var(--background);
-    --radius-sm: calc(var(--radius) * 0.6);
-    --radius-md: calc(var(--radius) * 0.8);
-    --radius-lg: var(--radius);
-    --radius-xl: calc(var(--radius) * 1.4);
-    --radius-2xl: calc(var(--radius) * 1.8);
-    --radius-3xl: calc(var(--radius) * 2.2);
-    --radius-4xl: calc(var(--radius) * 2.6);
-    /* Figma: botão Explorar */
-    --radius-button: 6px;
-    /* Figma: título mobile */
-    --text-display-mobile: 18px;
-    --text-display-mobile--line-height: 29px;
-    --text-display-mobile--font-weight: 700;
-    --text-display-mobile--letter-spacing: 0em;
-    /* Figma: texto de apoio mobile */
-    --text-body-mobile: 12px;
-    --text-body-mobile--line-height: 18px;
-    --text-body-mobile--font-weight: 400;
-    --text-body-mobile--letter-spacing: 0em;
-    /* Figma: ação de texto mobile */
-    --text-action-mobile: 12px;
-    --text-action-mobile--line-height: 14px;
-    --text-action-mobile--font-weight: 700;
-    --text-action-mobile--letter-spacing: 0em;
-    --color-text-accent: var(--text-accent);
+  /* Figma: Display/43 Bold */
+  --text-display: 43px;
+  --text-display--line-height: 70px;
+  --text-display--font-weight: 700;
+  --text-display--letter-spacing: 0em;
+  /* Figma: texto de apoio */
+  --text-body: 14px;
+  --text-body--line-height: 24px;
+  --text-body--font-weight: 400;
+  --text-body--letter-spacing: 0em;
+  --color-ink: var(--ink);
+  --font-heading: var(--font-sans);
+  --font-sans: "Roboto Mono Variable", monospace;
+  --color-text-secondary: var(--text-secondary);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-surface-card: var(--surface-card);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+  /* Figma: botão Explorar */
+  --radius-button: 6px;
+  /* Figma: título mobile */
+  --text-display-mobile: 18px;
+  --text-display-mobile--line-height: 29px;
+  --text-display-mobile--font-weight: 700;
+  --text-display-mobile--letter-spacing: 0em;
+  /* Figma: texto de apoio mobile */
+  --text-body-mobile: 12px;
+  --text-body-mobile--line-height: 18px;
+  --text-body-mobile--font-weight: 400;
+  --text-body-mobile--letter-spacing: 0em;
+  /* Figma: ação de texto mobile */
+  --text-action-mobile: 12px;
+  --text-action-mobile--line-height: 14px;
+  --text-action-mobile--font-weight: 700;
+  --text-action-mobile--letter-spacing: 0em;
+  --color-text-accent: var(--text-accent);
 }
 
 :root {
-    /* Figma: Color/Text Secondary */
-    --text-secondary: #cfb28c;
-    /* Figma: Text/Accent */
-    --text-accent: #e89b55;
-    /* Figma: Color/Ink */
-    --ink: #140d0a;
-    --background: var(--ink);
-    /* Figma: Color/Foreground */
-    --foreground: #f5f1eb;
-    /* Figma: Color/Surface Card */
-    --surface-card: #241612;
-    --card: var(--surface-card);
-    --card-foreground: var(--foreground);
-    --popover: oklch(1 0 0);
-    --popover-foreground: oklch(0.145 0 0);
-    /* Figma: Color/Primary */
-    --primary: #d28a4c;
-    --primary-foreground: var(--ink);
-    --secondary: oklch(0.97 0 0);
-    --secondary-foreground: oklch(0.205 0 0);
-    --muted: oklch(0.97 0 0);
-    --muted-foreground: oklch(0.556 0 0);
-    --accent: oklch(0.97 0 0);
-    --accent-foreground: oklch(0.205 0 0);
-    --destructive: oklch(0.577 0.245 27.325);
-    --border: oklch(0.922 0 0);
-    --input: oklch(0.922 0 0);
-    --ring: oklch(0.708 0 0);
-    --chart-1: oklch(0.87 0 0);
-    --chart-2: oklch(0.556 0 0);
-    --chart-3: oklch(0.439 0 0);
-    --chart-4: oklch(0.371 0 0);
-    --chart-5: oklch(0.269 0 0);
-    --radius: 0.625rem;
-    --sidebar: oklch(0.985 0 0);
-    --sidebar-foreground: oklch(0.145 0 0);
-    --sidebar-primary: oklch(0.205 0 0);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.97 0 0);
-    --sidebar-accent-foreground: oklch(0.205 0 0);
-    --sidebar-border: oklch(0.922 0 0);
-    --sidebar-ring: oklch(0.708 0 0);
+  /* Figma: Color/Text Secondary */
+  --text-secondary: #cfb28c;
+  /* Figma: Text/Accent */
+  --text-accent: #e89b55;
+  /* Figma: Color/Ink */
+  --ink: #140d0a;
+  --background: var(--ink);
+  /* Figma: Color/Foreground */
+  --foreground: #f5f1eb;
+  /* Figma: Color/Surface Card */
+  --surface-card: #241612;
+  --card: var(--surface-card);
+  --card-foreground: var(--foreground);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  /* Figma: Color/Primary */
+  --primary: #d28a4c;
+  --primary-foreground: var(--ink);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+  --radius: 0.625rem;
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
 }
 
 .dark {
-    --background: var(--ink);
-    --foreground: #f5f1eb;
-    --card: var(--surface-card);
-    --card-foreground: var(--foreground);
-    --popover: oklch(0.205 0 0);
-    --popover-foreground: oklch(0.985 0 0);
-    --primary: #d28a4c;
-    --primary-foreground: var(--ink);
-    --secondary: oklch(0.269 0 0);
-    --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.269 0 0);
-    --muted-foreground: oklch(0.708 0 0);
-    --accent: oklch(0.269 0 0);
-    --accent-foreground: oklch(0.985 0 0);
-    --destructive: oklch(0.704 0.191 22.216);
-    --border: oklch(1 0 0 / 10%);
-    --input: oklch(1 0 0 / 15%);
-    --ring: oklch(0.556 0 0);
-    --chart-1: oklch(0.87 0 0);
-    --chart-2: oklch(0.556 0 0);
-    --chart-3: oklch(0.439 0 0);
-    --chart-4: oklch(0.371 0 0);
-    --chart-5: oklch(0.269 0 0);
-    --sidebar: oklch(0.205 0 0);
-    --sidebar-foreground: oklch(0.985 0 0);
-    --sidebar-primary: oklch(0.488 0.243 264.376);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.269 0 0);
-    --sidebar-accent-foreground: oklch(0.985 0 0);
-    --sidebar-border: oklch(1 0 0 / 10%);
-    --sidebar-ring: oklch(0.556 0 0);
+  --background: var(--ink);
+  --foreground: #f5f1eb;
+  --card: var(--surface-card);
+  --card-foreground: var(--foreground);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: #d28a4c;
+  --primary-foreground: var(--ink);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
+}
+
+.loading-skeleton {
+  position: relative;
+  overflow: hidden;
+  background-color: var(--card);
+}
+
+.loading-skeleton::after {
+  position: absolute;
+  inset: 0;
+  content: "";
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgb(245 241 235 / 12%),
+    transparent
+  );
+  transform: translateX(-100%);
+  animation: skeleton-shimmer 1.5s ease-in-out infinite;
+}
+
+.mobile-navigation-dialog {
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  width: min(24rem, calc(100% - 3rem));
+  max-height: calc(100dvh - 3rem);
+  overflow-y: auto;
+  padding: 1.5rem;
+  border: 1px solid var(--primary);
+  border-radius: 0.75rem;
+  background: var(--card);
+  color: var(--foreground);
+}
+
+.mobile-navigation-dialog::backdrop {
+  background: rgb(0 0 0 / 65%);
+}
+
+.mobile-tab-bar {
+  position: fixed;
+  inset-inline: 0;
+  bottom: 0;
+  z-index: 30;
+  width: 100%;
+  max-width: 414px;
+  aspect-ratio: 414 / 135;
+  margin-inline: auto;
+  isolation: isolate;
+}
+
+.mobile-tab-bar__background {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  display: block;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  user-select: none;
+}
+
+.mobile-tab-bar__items {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  align-items: center;
+  height: 70.37%;
+  padding-top: 1.5rem;
+  padding-inline: 1rem;
+}
+
+.mobile-tab-bar__item {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  justify-self: center;
+  width: 2.75rem;
+  height: 2.75rem;
+}
+
+.mobile-tab-bar__center {
+  position: absolute;
+  top: 6.666667%;
+  left: 50%;
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 15.700483%;
+  aspect-ratio: 1;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--primary);
+  color: var(--foreground);
+}
+
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .mobile-tab-bar {
+    bottom: env(safe-area-inset-bottom);
+  }
+
+  .mobile-tab-bar::after {
+    position: absolute;
+    top: 100%;
+    inset-inline: 0;
+    height: env(safe-area-inset-bottom);
+    background: var(--card);
+    content: "";
+  }
+}
+.mobile-menu-trigger {
+  width: 45px;
+  height: 45px;
+  border-radius: 14px;
+}
+@keyframes skeleton-shimmer {
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loading-skeleton::after {
+    animation: none;
+    background: none;
+    transform: none;
+  }
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
-    }
+  }
   body {
     @apply bg-background text-foreground;
-    }
+  }
   html {
     @apply font-sans;
-    }
+  }
 }
