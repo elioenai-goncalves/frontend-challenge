@@ -1,17 +1,19 @@
 import { http, HttpResponse } from 'msw/http'
 import type { Network, QuoteItem, QuoteRequest, QuoteResponse } from '@/contracts/api'
+import { resolveCart } from '../cart-access'
 import { commit, db } from '../db'
 import { fromUnits, toUnits } from '../decimal'
 import { resolveImage } from '../images'
 import { COUPONS, NETWORK_FEES_ETH, QUOTE_TTL_MS } from '../pricing'
-import { authenticate, errorResponse, readJson } from '../utils'
+import { errorResponse, readJson } from '../utils'
 
 const NETWORKS: Network[] = ['ethereum', 'polygon', 'solana']
 
 export const quoteHandlers = [
   http.post('/api/quotes', async ({ request }) => {
-    const auth = authenticate(request)
-    if ('response' in auth) return auth.response
+    const lookup = resolveCart(request)
+    if ('response' in lookup) return lookup.response
+    const { cart } = lookup
 
     const body = await readJson<QuoteRequest>(request)
     if (!body.network || !NETWORKS.includes(body.network)) {
@@ -19,9 +21,7 @@ export const quoteHandlers = [
         network: 'Escolha uma rede válida.',
       })
     }
-
-    const cart = db().carts.find((c) => c.userId === auth.user.id)
-    if (!cart || cart.items.length === 0) {
+    if (cart.items.length === 0) {
       return errorResponse(422, 'VALIDATION_ERROR', 'Seu carrinho está vazio.')
     }
 
@@ -60,12 +60,12 @@ export const quoteHandlers = [
     if (code) {
       const rule = COUPONS[code]
       if (!rule) {
-        return errorResponse(422, 'INVALID_COUPON', 'Cupom inválido.', {
+        return errorResponse(400, 'INVALID_COUPON', 'Cupom inválido.', {
           couponCode: 'Cupom inválido.',
         })
       }
       if (rule.expired) {
-        return errorResponse(422, 'EXPIRED_COUPON', 'Este cupom expirou.', {
+        return errorResponse(400, 'EXPIRED_COUPON', 'Este cupom expirou.', {
           couponCode: 'Este cupom expirou.',
         })
       }

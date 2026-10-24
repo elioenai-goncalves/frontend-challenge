@@ -8,9 +8,11 @@ export function toNft(stored: StoredNft): Nft {
   return { ...rest, imageUrls: imageKeys.map(resolveImage) }
 }
 
-// Preço de listagem: o menor entre as edições.
-export function listingPrice(stored: StoredNft): bigint {
-  return stored.editions
+// Menor preço entre as edições disponíveis; null se nenhuma estiver disponível.
+export function listingPrice(stored: StoredNft): bigint | null {
+  const prices = stored.editions
+    .filter((edition) => edition.availableQuantity > 0)
     .map((edition) => toUnits(edition.priceEth))
-    .reduce((lowest, price) => (price < lowest ? price : lowest))
+  if (prices.length === 0) return null
+  return prices.reduce((lowest, price) => (price < lowest ? price : lowest))
 }

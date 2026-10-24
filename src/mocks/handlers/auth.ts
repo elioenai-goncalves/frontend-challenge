@@ -85,6 +85,6 @@ export const authHandlers = [
     if ('response' in auth) return auth.response
     db().sessions = db().sessions.filter((s) => s.token !== auth.token)
     commit()
-    return HttpResponse.json({ success: true as const })
+    return new HttpResponse(null, { status: 204 })
   }),
 ]

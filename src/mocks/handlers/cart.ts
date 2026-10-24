@@ -8,32 +8,7 @@ import type {
 } from '@/contracts/api'
 import { commit, db, type StoredCart } from '../db'
 import { authenticate, errorResponse, readJson } from '../utils'
-
-type CartLookup = { cart: StoredCart } | { response: Response }
-
-function createCart(userId: string | null): StoredCart {
-  const cart: StoredCart = { id: crypto.randomUUID(), userId, items: [], version: 1 }
-  db().carts.push(cart)
-  commit()
-  return cart
-}
-
-function userCartOf(userId: string): StoredCart {
-  return db().carts.find((c) => c.userId === userId) ?? createCart(userId)
-}
-
-function resolveCart(request: Request): CartLookup {
-  if (request.headers.has('Authorization')) {
-    const auth = authenticate(request)
-    if ('response' in auth) return { response: auth.response }
-    return { cart: userCartOf(auth.user.id) }
-  }
-  const guestId = request.headers.get('X-Cart-Id')
-  const existing = guestId
-    ? db().carts.find((c) => c.id === guestId && c.userId === null)
-    : undefined
-  return { cart: existing ?? createCart(null) }
-}
+import { resolveCart, userCartOf } from '../cart-access'
 
 function findEdition(nftId: string, editionId: string): NftEdition | null {
   const nft = db().nfts.find((item) => item.id === nftId)

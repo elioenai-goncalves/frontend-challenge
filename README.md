@@ -1,3 +1,54 @@
+# Marketplace de NFTs — Frontend Challenge
+
+## API simulada (MSW)
+
+A aplicação roda contra uma API simulada com Mock Service Worker. Nenhuma
+resposta fictícia vive em componentes, hooks ou no cliente Axios; tudo passa
+pelos handlers em `src/mocks/`.
+
+### Ativar
+
+1. Copie `.env.example` para `.env`.
+2. Garanta `VITE_ENABLE_MOCKS=true` e `VITE_API_BASE_URL=/api`.
+3. `npm install` e `npm run dev`.
+
+O arquivo `public/mockServiceWorker.js` é versionado e vai para o build.
+No deploy, defina `VITE_ENABLE_MOCKS=true` nas variáveis de ambiente
+da hospedagem para o build de demonstração usar os mocks.
+
+### Credenciais fictícias
+
+| Usuário | E-mail | Senha |
+| --- | --- | --- |
+| Ana Souza | ana@example.com | Senha123! |
+| Bruno Lima | bruno@example.com | Senha456! |
+
+### Cupons e taxas
+
+| Cupom | Efeito |
+| --- | --- |
+| BEMVINDO10 | 10% de desconto |
+| ARTE25 | 25% de desconto |
+| VERAO5 | expirado (erro 400) |
+
+Taxa de rede fixa, em ETH: ethereum 0.002, polygon 0.0005, solana 0.0001.
+
+### Estado e reset
+
+O estado simulado fica no `localStorage` (chave
+`frontend-challenge:mock-db`) e sobrevive ao refresh. Para voltar ao cenário
+inicial, execute no console do navegador:
+
+    await window.mocks.reset()
+
+### Problemas comuns
+
+- Chamadas a `/api` voltando como HTML: o Service Worker saiu do controle da
+  página. Em DevTools > Application > Storage, use "Clear site data" e
+  recarregue com F5 (sem Shift). Confira também se "Bypass for network" está
+  desmarcado em Service Workers.
+- Requer Node.js 22 ou superior (MSW 3).
+
 # React + TypeScript + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.

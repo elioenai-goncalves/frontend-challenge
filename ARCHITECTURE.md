@@ -380,3 +380,111 @@ resourceId corresponde ao id do pedido, e version à sua versão.
 - ErrorState recebe mensagem, callback de nova tentativa
   e indicação opcional de tentativa em andamento.
 - A integração com consultas reais ocorrerá nas issues das telas.
+
+## API simulada (MSW)
+
+### Organização
+
+- `src/mocks/browser.ts`: worker do MSW. `src/mocks/start.ts`: inicializa o
+  banco e o worker, e expõe `window.mocks.reset()`.
+- `src/mocks/db.ts`: estado em memória persistido no `localStorage`.
+  `SCHEMA_VERSION` descarta estado antigo quando o formato muda.
+- `src/mocks/seed.ts` e `catalog.ts`: 2 usuários e 16 NFTs determinísticos.
+- `src/mocks/handlers/`: um arquivo por recurso.
+- Os mocks são carregados por `import()` dinâmico somente quando
+  `VITE_ENABLE_MOCKS` é `true`.
+
+### Decisões
+
+- Os handlers rodam na página, por isso acessam o `localStorage`.
+- Senhas: apenas hash PBKDF2 (SHA-256, 100 mil iterações) com salt por usuário.
+  É um mock; não substitui um backend real.
+- Imagens: o estado guarda chaves; a URL final é resolvida na resposta,
+  porque o Vite altera os nomes dos arquivos a cada build.
+- ETH: aritmética em `bigint` com 18 casas (`src/mocks/decimal.ts`).
+- Carrinho de visitante: id criado no cliente e enviado em
+  `X-Guest-Cart-Id`. A mescla remove o carrinho do visitante e limita
+  quantidades a estoque e máximo por pedido.
+- Cotação: calculada do carrinho com preços atuais; validade de 5 minutos.
+  Visitantes podem cotar, mas só o dono do carrinho cria pedido.
+- Pedido confirmado: guarda cópia da cotação (recibo), baixa o estoque das
+  edições, incrementa a versão do NFT e remove do carrinho os itens comprados.
+- Cotação expirada ou carrinho alterado: erro 409 `QUOTE_CHANGED`.
+- Carteiras: no máximo uma principal e uma secundária por usuário;
+  endereço validado por rede.
+- Pedido de outro usuário responde 404, sem revelar a existência.
+
+### Limites desta entrega
+
+- Cenários de falha e latência: Issue 08.
+- Idempotência de pedidos (`Idempotency-Key`): Issue 09. Hoje o cabeçalho
+  é ignorado e o pedido sempre sai confirmado.
+- Socket.IO: Issues 10 e 11.
+
+### Verificações manuais da Issue 07
+
+Autenticação e sessão
+- Login válido retorna sessão; senha incorreta retorna 401.
+- Cadastro novo retorna 201; e-mail repetido retorna 409.
+- Logout retorna 204 sem corpo.
+- Senhas guardadas apenas como salt e hash no `localStorage`.
+
+Catálogo
+- Listagem com 16 NFTs e paginação (12 por página; página 2 com 4 itens).
+- Busca textual, ordenação por preço e filtros de rede e de faixa de preço.
+- Detalhe de NFT existente (200) e inexistente (404).
+
+Favoritos
+- Sem token retorna 401.
+- Favoritar retorna 201; repetir não duplica e retorna 200.
+- NFT inexistente retorna 404; remoção atualiza a lista.
+- Favoritos isolados por usuário.
+
+Carrinho
+- Carrinho de visitante exige `X-Guest-Cart-Id` e usa o id enviado.
+- Adição de item, soma de quantidade do mesmo item, limite por pedido,
+  edição sem estoque e edição inexistente.
+- Alteração e remoção de item.
+- Mescla do visitante ao autenticar, sem somar de novo ao repetir.
+
+Cotação
+- Sem token e sem identificação do visitante é recusada.
+- Carrinho vazio e rede inválida retornam erro de validação.
+- Subtotal, taxa de rede e total em aritmética decimal.
+- Cupom válido (sem diferenciar maiúsculas), inválido e expirado (400).
+- Cotação de visitante é aceita, mas não pode gerar pedido.
+
+Pedidos
+- Validação do colecionador, da carteira e da rede.
+- Criação retorna 201 com status confirmado e recibo da cotação.
+- Segunda tentativa com a mesma cotação retorna 409.
+- Carrinho esvaziado e estoque do catálogo atualizado após a compra.
+- Pedido consultável apenas pelo dono (outro usuário recebe 404).
+
+Perfil
+- Leitura e edição de nome, e-mail e avatar.
+- E-mail de outra conta retorna 409; avatar inválido retorna 422.
+- Troca de senha: senha atual incorreta, senha nova curta ou igual à atual
+  são recusadas; após trocar, a senha antiga deixa de funcionar.
+
+Carteiras
+- Listagem, cadastro e edição da carteira principal e da secundária.
+- Papel já ocupado e endereço repetido retornam 409.
+- Endereço inválido para a rede retorna 422.
+- Carteira de outro usuário retorna 404.
+- Cadastro de carteira Solana.
+
+Persistência e reset
+- Estado mantido após refresh (favoritos, carrinho e perfil).
+- `window.mocks.reset()` restaura o cenário inicial.
+
+Qualidade
+- `npm run typecheck`, `npm run lint` e `npm run build` executados
+  com sucesso.
+- Build de produção servido por npm run preview com mocks ativos.
+
+Limites da validação
+- Verificações manuais, feitas por chamadas no Console do navegador.
+  Não representam testes automatizados.
+- Cenários de falha e latência (Issue 08) e idempotência de pedidos
+  (Issue 09) não foram verificados.
