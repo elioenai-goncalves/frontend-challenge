@@ -5,6 +5,13 @@ import { queryClient } from '@/lib/query-client'
 import App from './App'
 import './index.css'
 
+async function enableMocking() {
+  if (import.meta.env.VITE_ENABLE_MOCKS !== 'true') return
+  const { startMocks } = await import('@/mocks/start')
+  await startMocks()
+}
+
+enableMocking().then(() => {
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
@@ -12,3 +19,4 @@ createRoot(document.getElementById('root')!).render(
     </QueryClientProvider>
   </StrictMode>,
 )
+})
