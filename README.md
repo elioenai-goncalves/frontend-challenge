@@ -82,6 +82,21 @@ escolha em tempo de execução e restaura o estado inicial.
 
 Cada cenário é determinístico: a mesma configuração produz o mesmo resultado.
 
+### Idempotência de pedidos
+
+`POST /api/orders` exige o cabeçalho `Idempotency-Key` (até 128 caracteres).
+A chave é isolada por usuário.
+
+| Situação | Resultado |
+| --- | --- |
+| Chave nova | 201 e pedido criado |
+| Mesma chave e mesmo conteúdo | 200, mesmo pedido (`Idempotent-Replayed: true`) |
+| Mesma chave e conteúdo diferente | 409 `IDEMPOTENCY_CONFLICT` |
+| Sem a chave | 422 |
+
+Para reproduzir a recuperação após timeout, ative o cenário `order-timeout`,
+envie um pedido e, depois do erro de rede, repita a mesma chave.
+
 # React + TypeScript + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.

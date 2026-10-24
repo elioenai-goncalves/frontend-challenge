@@ -44,5 +44,6 @@ export async function createSeed(): Promise<MockDb> {
     },
     quotes: [],
     orders: [],
+    idempotency: [],
   }
 }

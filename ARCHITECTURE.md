@@ -489,6 +489,46 @@ Limites da validação
 - Cenários de falha e latência (Issue 08) e idempotência de pedidos
   (Issue 09) não foram verificados.
 
+  ### Idempotência
+
+- Registros (usuário, chave, conteúdo, pedido) ficam em `idempotency`, no
+  estado persistido do mock; `SCHEMA_VERSION` foi elevado para 3.
+- O conteúdo comparado é cotação, carteira, rede e dados do colecionador.
+- A repetição é resolvida antes das validações de cotação e estoque, porque o
+  carrinho e o estoque já mudaram após o primeiro envio.
+- Pedidos confirmados e recusados são registrados; ambos são terminais.
+- A chave é gerada pelo cliente (Issue 18) e reutilizada em reenvios.
+
+### Verificações manuais da Issue 09
+
+Idempotência
+- Pedido sem `Idempotency-Key` retorna 422.
+- Chave nova cria o pedido e retorna 201.
+- Repetição com a mesma chave e o mesmo conteúdo retorna 200 com o mesmo
+  identificador de pedido.
+- (*) A repetição indica `Idempotent-Replayed: true` e não baixa o estoque
+  de novo.
+- (*) Duas chamadas com a mesma chave resultam em um único pedido gravado.
+- A mesma chave com conteúdo diferente retorna 409
+  `IDEMPOTENCY_CONFLICT`.
+
+Recuperação
+- Com o cenário `order-timeout`, a primeira tentativa termina em erro de
+  rede e a repetição com a mesma chave recupera o pedido original (200).
+- O pedido recuperado pode ser consultado em `GET /api/orders/:id`.
+- Com `payment-refused`, a repetição devolve o mesmo pedido recusado.
+
+Qualidade
+- `npm run typecheck`, `npm run lint` e `npm run build` executados com
+  sucesso.
+
+Limites da validação
+- Verificações manuais, feitas por chamadas no Console do navegador.
+- O isolamento da chave por usuário está no desenho do handler e não foi
+  exercitado com um segundo usuário.
+- O bloqueio de clique duplo e a geração da chave no cliente pertencem à
+  Issue 18.
+
   ## Cenários dos mocks
 
 - `src/mocks/scenario.ts` define a lista de cenários, a escolha ativa e o

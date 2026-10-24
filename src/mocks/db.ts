@@ -25,6 +25,12 @@ export interface StoredCart {
   version: number
 }
 
+export interface StoredIdempotencyRecord {
+  userId: string
+  key: string
+  fingerprint: string
+  orderId: string
+}
 export interface MockDb {
   schemaVersion: number
   users: StoredUser[]
@@ -35,9 +41,10 @@ export interface MockDb {
   wallets: Record<string, Wallet[]>
   quotes: QuoteResponse[]
   orders: Order[]
+  idempotency: StoredIdempotencyRecord[]
 }
 
-export const SCHEMA_VERSION = 2
+export const SCHEMA_VERSION = 3
 const STORAGE_KEY = 'frontend-challenge:mock-db'
 
 let state: MockDb | null = null
