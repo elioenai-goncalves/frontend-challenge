@@ -1,6 +1,7 @@
 import type { MockDb } from './db'
 import { SCHEMA_VERSION } from './db'
 import { hashPassword, randomSalt } from './password'
+import { buildNfts } from './catalog'
 
 export const SEED_CREDENTIALS = [
   { id: 'user-ana', name: 'Ana Souza', email: 'ana@example.com', password: 'Senha123!' },
@@ -26,7 +27,7 @@ export async function createSeed(): Promise<MockDb> {
     schemaVersion: SCHEMA_VERSION,
     users,
     sessions: [],
-    nfts: [], // preenchido no próximo passo
+    nfts: buildNfts(),
     favorites: { 'user-ana': [], 'user-bruno': [] },
     carts: [],
     wallets: {

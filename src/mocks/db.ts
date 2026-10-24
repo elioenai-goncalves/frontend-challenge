@@ -37,7 +37,7 @@ export interface MockDb {
   orders: Order[]
 }
 
-export const SCHEMA_VERSION = 1
+export const SCHEMA_VERSION = 2
 const STORAGE_KEY = 'frontend-challenge:mock-db'
 
 let state: MockDb | null = null
