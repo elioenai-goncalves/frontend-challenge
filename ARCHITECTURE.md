@@ -836,7 +836,34 @@ Resposta:
 
 ### Próximas etapas
 
-- Envio idempotente e estados de pedido.
 - Tratamento de recusa e falhas.
 - Recuperação após timeout ou refresh.
 - Integração da confirmação com a Issue 19.
+
+### Envio idempotente
+
+- O frontend exige revalidação da cotação antes do envio.
+- Alterações em campos, rede ou carteira invalidam
+  a aprovação anterior.
+- A confirmação gera uma chave UUID de idempotência.
+- A chave e o corpo do pedido são persistidos antes
+  do envio da requisição.
+- POST /orders envia o cabeçalho Idempotency-Key.
+- Pedidos confirmados atualizam o cache do carrinho.
+- Pedidos rejeitados mantêm o carrinho.
+- Erros de negócio encerram a tentativa inválida.
+- Erros de rede e 5xx mantêm a tentativa pendente.
+- A recuperação reutiliza a mesma chave e o mesmo corpo.
+- Uma resposta pending não autoriza outra compra.
+- A tentativa persistida é isolada por usuário.
+- Não é apresentada confirmação antes da resposta
+  efetivamente confirmada pela API.
+
+### Recuperação pendente
+
+Na Etapa 3, o checkout deverá consultar tentativas
+pendentes também após refresh, antes de apresentar
+o estado de carrinho vazio.
+
+O objetivo é recuperar pagamentos cujo resultado
+foi perdido sem criar um segundo pedido.

@@ -279,17 +279,43 @@ A rota `/checkout` é protegida por autenticação.
 A conexão de carteira é simulada na interface.
 Não existe integração com carteira blockchain real.
 
-O envio de pedidos ainda não foi habilitado.
-
-A Etapa 2 implementará POST /api/orders, chave de
-idempotência, tratamento de pagamento recusado,
-revalidação antes da confirmação e prevenção de
-envios duplicados.
-
 A Etapa 3 implementará recuperação após timeout,
 refresh ou reconexão.
 
 A tela de recibo pertence à Issue 19.
+
+### Envio de pedidos
+
+O checkout envia POST /api/orders somente após
+validação dos campos, seleção de uma carteira compatível
+e revalidação da cotação.
+
+Cada nova tentativa recebe uma Idempotency-Key única.
+
+- Cliques repetidos são bloqueados no cliente.
+- O pedido é confirmado somente com status confirmed.
+- Status rejected apresenta o motivo da recusa.
+- Pagamento recusado não esvazia o carrinho.
+- Mudanças de preço, estoque ou cotação exigem revisão.
+- Falhas de rede não são tratadas como recusa.
+- Uma tentativa de resultado desconhecido mantém
+  a mesma chave e o mesmo corpo para recuperação.
+- O resultado pode ser verificado sem criar outra compra.
+
+### Cenários
+
+- payment-confirmed: pagamento aprovado.
+- payment-refused: pedido rejeitado, sem baixar estoque.
+- price-changed: preço alterado, exige nova cotação.
+- sold-out: estoque insuficiente, compra impedida.
+- order-timeout: resposta perdida após o pedido ser gravado.
+
+### Continuidade
+
+A recuperação após refresh, inclusive com carrinho vazio,
+será finalizada na Etapa 3 da Issue 18.
+
+A página completa de recibo pertence à Issue 19.
 
 # React + TypeScript + Vite
 
