@@ -801,3 +801,42 @@ Resposta:
   estoque, taxa e versão antes da confirmação.
 - Socket.IO e atualização de valores em tempo real
   pertencem às Issues 11 e 20.
+
+## Checkout
+
+### Roteamento
+
+- `/checkout` exige sessão autenticada.
+- `validateCheckoutSearch` valida rede e cupom na URL.
+- A URL preserva as escolhas ao passar pelo login.
+
+### Dados
+
+- `useCart` recupera o carrinho autenticado.
+- `useWallets` consulta GET /wallets.
+- `useQuote` consulta POST /quotes com rede e cupom.
+- Todas as informações financeiras são exibidas
+  diretamente das strings decimais retornadas pela API.
+
+### Validação
+
+- Nome e e-mail são validados no formulário.
+- Uma carteira deve ser selecionada.
+- A carteira selecionada precisa pertencer à rede.
+- A conexão da carteira é simulada localmente.
+
+### Revalidação
+
+- A revisão solicita uma nova cotação via API.
+- Preço, itens, quantidade, desconto, taxa, total
+  e versão são comparados com a cotação anterior.
+- Alterações exigem nova revisão do usuário.
+- Uma falha de cotação não cria pedido.
+- POST /orders permanece desabilitado nesta etapa.
+
+### Próximas etapas
+
+- Envio idempotente e estados de pedido.
+- Tratamento de recusa e falhas.
+- Recuperação após timeout ou refresh.
+- Integração da confirmação com a Issue 19.

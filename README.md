@@ -255,6 +255,42 @@ cálculos financeiros com Number.
 - Atualizações de valores por Socket.IO pertencem
   às Issues 11 e 20.
 
+## Checkout e pagamento
+
+A rota `/checkout` é protegida por autenticação.
+
+### Implementado
+
+- Navegação pelo carrinho preservando rede e cupom na URL.
+- Redirecionamento do visitante para login.
+- Recuperação do carrinho após autenticação.
+- Formulário com nome e e-mail do colecionador.
+- Validação dos campos antes da revisão.
+- Listagem das carteiras cadastradas via GET /api/wallets.
+- Seleção de rede e carteira compatível.
+- Simulação local de conexão e desconexão da carteira.
+- Revisão dos itens e valores da cotação.
+- Revalidação por POST /api/quotes.
+- Aviso quando os valores da cotação mudarem.
+- Estados de carregamento, vazio e erro.
+
+### Limitações desta etapa
+
+A conexão de carteira é simulada na interface.
+Não existe integração com carteira blockchain real.
+
+O envio de pedidos ainda não foi habilitado.
+
+A Etapa 2 implementará POST /api/orders, chave de
+idempotência, tratamento de pagamento recusado,
+revalidação antes da confirmação e prevenção de
+envios duplicados.
+
+A Etapa 3 implementará recuperação após timeout,
+refresh ou reconexão.
+
+A tela de recibo pertence à Issue 19.
+
 # React + TypeScript + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.

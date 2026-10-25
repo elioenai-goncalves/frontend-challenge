@@ -6,6 +6,7 @@ import { validateCatalogSearch } from '@/lib/catalog-search'
 import { validateLoginSearch } from '@/lib/login-search'
 import { endSession, getSession, initSession } from '@/lib/session'
 import { HomePage } from '@/pages/home-page'
+import { validateCheckoutSearch } from '@/lib/checkout-search'
 
 import { LoginPage } from '@/pages/login-page'
 import { RegisterPage } from '@/pages/register-page'
@@ -66,6 +67,7 @@ const cartRoute = createRoute({
 const checkoutRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/checkout',
+  validateSearch: validateCheckoutSearch,
   beforeLoad: requireSession,
   component: CheckoutPage,
 })
