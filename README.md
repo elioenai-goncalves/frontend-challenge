@@ -113,13 +113,31 @@ edições disponíveis, preço e controle de quantidade.
 - Falhas de consulta apresentam opção de nova tentativa.
 - O carregamento utiliza skeletons com shimmer.
 
-### Favoritos
+### Favoritos e mutations
 
-- Visitantes são direcionados ao login, preservando
-  a rota de detalhe para retorno.
-- Usuários autenticados podem favoritar e desfavoritar.
-- Os favoritos são persistidos pelo MSW e isolados por usuário.
-- Erros da API são apresentados na interface.
+- `useFavorites` consulta `GET /favorites` com query key
+  isolada pelo identificador do usuário.
+- `useToggleFavorite` executa POST ou DELETE pelo Axios.
+- `onMutate` cancela consultas pendentes e guarda o estado
+  anterior antes de modificar o cache.
+- O cache é atualizado imediatamente de maneira otimista.
+- `onError` restaura o snapshot anterior se a mutation falhar.
+- `onSuccess` atualiza o cache com a resposta da API e
+  invalida a consulta para reconciliar o estado.
+- A interface impede cliques simultâneos durante a mutation.
+- As mensagens de processamento e erro usam feedback acessível.
+- Respostas de sessões antigas não alteram o cache
+  de favoritos da sessão atual.
+- Visitantes são direcionados ao login, preservando a rota
+  do NFT no parâmetro `redirect`.
+
+#### Limitações
+
+- O botão de favoritos está disponível no detalhe do NFT.
+- A página dedicada de favoritos não faz parte do desafio.
+- O armazenamento persistente continua sendo responsabilidade
+  dos handlers do MSW.
+- O cenário `http-5xx` permite reproduzir e verificar rollback.
 
 ### Adicionar ao carrinho
 
@@ -135,7 +153,25 @@ edições disponíveis, preço e controle de quantidade.
 A página completa do carrinho e a mesclagem do carrinho
 visitante após login pertencem à Issue 16.
 
-A atualização otimista dos favoritos pertence à Issue 15.
+### Atualização otimista
+
+As alterações de favoritos são refletidas imediatamente
+na interface, antes da confirmação da API simulada.
+
+- `onMutate` atualiza o cache do TanStack Query.
+- `cancelQueries` evita que consultas pendentes sobrescrevam
+  a atualização otimista.
+- `onError` restaura o estado anterior (rollback).
+- `onSuccess` sincroniza o cache com a resposta do MSW.
+- Falhas são informadas ao usuário com feedback acessível.
+- Favoritos permanecem isolados por usuário autenticado.
+- As mutations não devem restaurar dados de sessões antigas.
+
+Para testar o rollback, abra um NFT autenticado, carregue
+os favoritos, ative `window.mocks.setScenario('http-5xx')`
+e tente favoritar ou desfavoritar.
+
+O botão deve voltar ao estado anterior após a falha.
 
 # React + TypeScript + Vite
 

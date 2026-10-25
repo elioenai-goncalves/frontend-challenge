@@ -346,11 +346,7 @@ function NftDetailContent({ nft }: { nft: Nft }) {
                 fill={isFavorite ? "currentColor" : "none"}
               />
 
-              {toggleFavorite.isPending
-                ? "Salvando..."
-                : isFavorite
-                  ? "Desfavoritar"
-                  : "Favoritar"}
+              {isFavorite ? "Desfavoritar" : "Favoritar"}
             </Button>
 
             <Button
@@ -365,6 +361,12 @@ function NftDetailContent({ nft }: { nft: Nft }) {
               {addToCart.isPending ? "Adicionando..." : "Adicionar ao carrinho"}
             </Button>
           </div>
+
+          {toggleFavorite.isPending && (
+            <p role="status" className="mt-2 text-sm text-text-secondary">
+              Salvando favorito...
+            </p>
+          )}
 
           {favorites.isError && (
             <div role="alert" className="mt-4 text-sm text-destructive">
