@@ -1,624 +1,193 @@
-# Marketplace de NFTs — Frontend Challenge
+# Kurio — Marketplace de NFTs
 
-## API simulada (MSW)
+Marketplace de NFTs desenvolvido com **React, TypeScript e Vite**, integrado a uma API simulada com **Mock Service Worker (MSW)**. O projeto demonstra navegação responsiva, autenticação, catálogo, favoritos, carrinho, cupons, checkout, recibo persistente e atualizações em tempo real via **Socket.IO**.
 
-A aplicação roda contra uma API simulada com Mock Service Worker. Nenhuma
-resposta fictícia vive em componentes, hooks ou no cliente Axios; tudo passa
-pelos handlers em `src/mocks/`.
+**Demonstração:** https://frontend-challenge-two-ruddy.vercel.app/  
+**Repositório:** https://github.com/elioenai-goncalves/frontend-challenge
 
-### Ativar
+> **Ambiente de demonstração:** não há pagamentos reais, blockchain, API hospedada nem carteiras conectadas a redes reais. Os dados e as operações são simulados no navegador; cada navegador possui seu próprio estado de demonstração.
 
-1. Copie `.env.example` para `.env`.
-2. Garanta `VITE_ENABLE_MOCKS=true` e `VITE_API_BASE_URL=/api`.
-3. `npm install` e `npm run dev`.
+## Tecnologias
 
-O arquivo `public/mockServiceWorker.js` é versionado e vai para o build.
-No deploy, defina `VITE_ENABLE_MOCKS=true` nas variáveis de ambiente
-da hospedagem para o build de demonstração usar os mocks.
+- React 19, TypeScript 6, Vite 8 e Tailwind CSS 4.
+- TanStack Router para navegação e TanStack Query para consultas e cache.
+- Axios para comunicação HTTP.
+- MSW 3 para endpoints REST, cenários de falha e transporte WebSocket simulado.
+- `socket.io-client` para eventos de atualização de NFTs e pedidos.
+- Playwright para testes E2E em Chromium desktop e mobile.
 
-### Credenciais fictícias
+## Executar localmente
+
+**Pré-requisito:** Node.js 22 ou superior e npm.
+
+```bash
+npm install
+```
+
+Crie um arquivo `.env` a partir de `.env.example`:
+
+```dotenv
+VITE_API_BASE_URL=/api
+VITE_ENABLE_MOCKS=true
+VITE_MOCK_SCENARIO=success
+```
+
+```bash
+npm run dev
+```
+
+O MSW é inicializado antes da renderização da aplicação. O arquivo `public/mockServiceWorker.js` acompanha o projeto.
+
+### Comandos
+
+| Comando | Finalidade |
+| --- | --- |
+| `npm run dev` | Iniciar o ambiente local |
+| `npm run typecheck` | Verificar tipos TypeScript |
+| `npm run lint` | Executar ESLint |
+| `npm run build` | Gerar o build em `dist/` |
+| `npm run preview` | Servir o build localmente |
+| `npm run test:e2e` | Executar os testes Playwright (quando configurados no checkout) |
+| `npm run test:e2e:report` | Abrir o relatório HTML do Playwright |
+
+Para instalar o navegador usado pelos testes:
+
+```bash
+npx playwright install chromium
+```
+
+Os testes usam a aplicação local por padrão. Para executá-los contra a URL publicada no **PowerShell**:
+
+```powershell
+$env:PLAYWRIGHT_BASE_URL = 'https://frontend-challenge-two-ruddy.vercel.app'
+npm run test:e2e
+Remove-Item Env:PLAYWRIGHT_BASE_URL
+```
+
+**Cobertura E2E efetivamente validada até esta revisão:** teste de carregamento da página inicial nos projetos Chromium desktop (1440 px) e mobile (390 px). Os demais fluxos ainda não devem ser interpretados como cobertos por testes automatizados.
+
+## Credenciais fictícias
 
 | Usuário | E-mail | Senha |
 | --- | --- | --- |
-| Ana Souza | ana@example.com | Senha123! |
-| Bruno Lima | bruno@example.com | Senha456! |
+| Ana Souza | `ana@example.com` | `Senha123!` |
+| Bruno Lima | `bruno@example.com` | `Senha456!` |
 
-### Cupons e taxas
+Use essas contas apenas na aplicação de demonstração. O cadastro de novos usuários é simulado.
 
-| Cupom | Efeito |
+## Funcionalidades disponíveis
+
+### Catálogo e detalhes
+
+- Listagem, destaques, busca, filtros por categoria, coleção, rede e preço, ordenação e paginação.
+- Detalhe de NFT com imagens, atributos, edições, estoque e limite por pedido.
+- Favoritos com atualização otimista, rollback em caso de erro e isolamento por usuário.
+- Estados de carregamento, lista vazia, erro e recurso inexistente.
+
+### Autenticação e carrinho
+
+- Cadastro, login, recuperação de sessão após refresh, logout e proteção de rotas privadas.
+- Carrinho para visitantes e usuários autenticados: adicionar, alterar quantidade e remover itens.
+- Persistência local após refresh e mesclagem do carrinho visitante ao autenticar, respeitando limites de estoque.
+- Contador de itens compartilhado entre página, cabeçalho desktop e navegação mobile.
+- Atualização de preços e disponibilidade na interface sem recarregar a página.
+
+### Cotação e checkout
+
+- Cotação por rede (Ethereum, Polygon ou Solana), subtotal, taxa, desconto e total retornados pela API simulada.
+- Cupons válidos, inválidos e expirados.
+- Checkout autenticado com seleção de carteira cadastrada, dados do colecionador, revisão e revalidação da cotação.
+- Pedidos idempotentes: reenvios com a mesma chave e mesmo conteúdo não geram outra compra.
+- Cenários de aprovação, recusa, estoque insuficiente, preço alterado e perda de resposta após o pedido ser gravado.
+- Recuperação de tentativa pendente após refresh, sem criar outro pedido, e recibo consultável posteriormente.
+
+### Tempo real
+
+- Conexão Socket.IO iniciada automaticamente após o MSW.
+- `nft.updated`: mudanças de preço e estoque refletidas em catálogo, detalhes e carrinho.
+- `order.updated`: mudanças de pedido entregues apenas à conexão autenticada do proprietário.
+- Proteção por versão contra eventos repetidos ou antigos; revalidação REST após reconexão.
+- Encerramento de listeners e limpeza de cache privado na troca de sessão.
+
+## Cupons de demonstração
+
+| Cupom | Comportamento |
 | --- | --- |
-| BEMVINDO10 | 10% de desconto |
-| ARTE25 | 25% de desconto |
-| VERAO5 | expirado (erro 400) |
+| `BEMVINDO10` | 10% de desconto |
+| `ARTE25` | 25% de desconto |
+| `VERAO5` | Expirado |
+| Qualquer outro | Inválido |
 
-Taxa de rede fixa, em ETH: ethereum 0.002, polygon 0.0005, solana 0.0001.
+Taxas de rede simuladas, em ETH: Ethereum `0.002`, Polygon `0.0005`, Solana `0.0001`. Os valores monetários são transportados como **strings decimais**; os cálculos do mock usam `BigInt` com escala de 18 casas, evitando operações financeiras em ponto flutuante no frontend.
 
-### Estado e reset
+## Cenários de simulação
 
-O estado simulado fica no `localStorage` (chave
-`frontend-challenge:mock-db`) e sobrevive ao refresh. Para voltar ao cenário
-inicial, execute no console do navegador:
+No Console do navegador:
 
-    await window.mocks.reset()
-
-### Problemas comuns
-
-- Chamadas a `/api` voltando como HTML: o Service Worker saiu do controle da
-  página. Em DevTools > Application > Storage, use "Clear site data" e
-  recarregue com F5 (sem Shift). Confira também se "Bypass for network" está
-  desmarcado em Service Workers.
-- Requer Node.js 22 ou superior (MSW 3).
-
-### Cenários
-
-O cenário ativo vem, nesta ordem, de: escolha em tempo de execução
-(`window.mocks.setScenario('nome')`, gravada no `localStorage`), da variável
-`VITE_MOCK_SCENARIO` ou do padrão `success`. `window.mocks.reset()` apaga a
-escolha em tempo de execução e restaura o estado inicial.
-
-    window.mocks.scenarios          // lista os cenários
-    window.mocks.setScenario('empty')
-    window.mocks.scenario()         // cenário ativo
+```js
+window.mocks.scenarios                 // cenários disponíveis
+window.mocks.setScenario('success')   // selecionar cenário
+window.mocks.scenario()               // consultar cenário atual
+await window.mocks.reset()            // restaurar dados e recarregar
+```
 
 | Cenário | Comportamento |
 | --- | --- |
-| success | Padrão. |
-| empty | Catálogo sem resultados. |
-| latency | Atraso de 300 a 2300 ms, fixo para a mesma chamada. |
-| out-of-order | Listagens de NFTs respondem em 1500, 200 e 800 ms em ciclo. |
-| network-error | Recursos de negócio falham sem resposta HTTP. |
-| http-4xx | Recursos de negócio devolvem 403. |
-| http-5xx | Recursos de negócio devolvem 503. |
-| session-expired | Chamadas autenticadas devolvem 401 SESSION_EXPIRED. |
-| register-conflict | Cadastro devolve 409. |
-| validation-error | Cadastro, perfil, senha, carteiras e pedido devolvem 422. |
-| coupon-invalid | Cupom enviado devolve 400 INVALID_COUPON. |
-| coupon-expired | Cupom enviado devolve 400 EXPIRED_COUPON. |
-| price-changed | Primeiro pedido falha com 409 (preço sobe 10%); nova cotação passa. |
-| sold-out | Primeiro pedido falha com 409 OUT_OF_STOCK. |
-| order-timeout | Pedido criado; resposta perdida após 3 s (erro de rede). Uma vez. |
-| payment-refused | Pedido gravado como rejected, sem baixar estoque. |
-| payment-confirmed | Igual a success. |
-
-Cada cenário é determinístico: a mesma configuração produz o mesmo resultado.
-
-### Idempotência de pedidos
-
-`POST /api/orders` exige o cabeçalho `Idempotency-Key` (até 128 caracteres).
-A chave é isolada por usuário.
-
-| Situação | Resultado |
-| --- | --- |
-| Chave nova | 201 e pedido criado |
-| Mesma chave e mesmo conteúdo | 200, mesmo pedido (`Idempotent-Replayed: true`) |
-| Mesma chave e conteúdo diferente | 409 `IDEMPOTENCY_CONFLICT` |
-| Sem a chave | 422 |
-
-Para reproduzir a recuperação após timeout, ative o cenário `order-timeout`,
-envie um pedido e, depois do erro de rede, repita a mesma chave.
-
-## Detalhe do NFT
-
-A rota `/nfts/:nftId` consulta `GET /api/nfts/:nftId`
-usando Axios e TanStack Query.
-
-A tela apresenta imagem, informações, características,
-edições disponíveis, preço e controle de quantidade.
-
-### Funcionalidades
-
-- A quantidade respeita o estoque e `maxPerOrder`.
-- Edições esgotadas não permitem compra.
-- NFTs inexistentes apresentam estado de não encontrado.
-- Falhas de consulta apresentam opção de nova tentativa.
-- O carregamento utiliza skeletons com shimmer.
-
-### Favoritos e mutations
-
-- `useFavorites` consulta `GET /favorites` com query key
-  isolada pelo identificador do usuário.
-- `useToggleFavorite` executa POST ou DELETE pelo Axios.
-- `onMutate` cancela consultas pendentes e guarda o estado
-  anterior antes de modificar o cache.
-- O cache é atualizado imediatamente de maneira otimista.
-- `onError` restaura o snapshot anterior se a mutation falhar.
-- `onSuccess` atualiza o cache com a resposta da API e
-  invalida a consulta para reconciliar o estado.
-- A interface impede cliques simultâneos durante a mutation.
-- As mensagens de processamento e erro usam feedback acessível.
-- Respostas de sessões antigas não alteram o cache
-  de favoritos da sessão atual.
-- Visitantes são direcionados ao login, preservando a rota
-  do NFT no parâmetro `redirect`.
-
-#### Limitações
-
-- O botão de favoritos está disponível no detalhe do NFT.
-- A página dedicada de favoritos não faz parte do desafio.
-- O armazenamento persistente continua sendo responsabilidade
-  dos handlers do MSW.
-- O cenário `http-5xx` permite reproduzir e verificar rollback.
-
-### Adicionar ao carrinho
-
-- A adição utiliza `POST /api/cart/items`.
-- Visitantes são identificados pelo cabeçalho
-  `X-Guest-Cart-Id`, persistido no localStorage.
-- Usuários autenticados utilizam seu token de sessão.
-- O redirecionamento para `/cart` acontece somente
-  após resposta de sucesso da API.
-- Os limites de estoque e quantidade são validados
-  novamente pelo servidor simulado.
-
-### Atualização otimista
-
-As alterações de favoritos são refletidas imediatamente
-na interface, antes da confirmação da API simulada.
-
-- `onMutate` atualiza o cache do TanStack Query.
-- `cancelQueries` evita que consultas pendentes sobrescrevam
-  a atualização otimista.
-- `onError` restaura o estado anterior (rollback).
-- `onSuccess` sincroniza o cache com a resposta do MSW.
-- Falhas são informadas ao usuário com feedback acessível.
-- Favoritos permanecem isolados por usuário autenticado.
-- As mutations não devem restaurar dados de sessões antigas.
-
-Para testar o rollback, abra um NFT autenticado, carregue
-os favoritos, ative `window.mocks.setScenario('http-5xx')`
-e tente favoritar ou desfavoritar.
-
-O botão deve voltar ao estado anterior após a falha.
-
-## Carrinho
-
-A rota `/cart` consulta a API simulada usando Axios
-e TanStack Query.
-
-### Funcionalidades
-
-- Listagem dos NFTs adicionados.
-- Consulta dos detalhes do NFT por identificador.
-- Exibição da edição e do preço unitário em ETH.
-- Alteração da quantidade via PATCH /api/cart/items/:itemId.
-- Remoção via DELETE /api/cart/items/:itemId.
-- Respeito ao estoque e ao limite por edição.
-- Persistência após refresh por meio do MSW.
-- Estado vazio, skeleton de carregamento e erros da API.
-
-O carrinho do visitante usa `X-Guest-Cart-Id`, mantido
-no localStorage. Usuários autenticados utilizam o token
-de sessão.
-
-### Mesclagem após autenticação
-
-O carrinho visitante utiliza o identificador persistido
-em `frontend-challenge:guest-cart-id`.
-
-Após login ou cadastro, a consulta autenticada do carrinho
-verifica se existe um identificador visitante pendente.
-
-Se existir, envia `POST /api/cart/merge` antes de consultar
-o carrinho do usuário.
-
-- A mesclagem é realizada no handler do MSW.
-- O identificador visitante só é removido após sucesso.
-- Falhas preservam o identificador para nova tentativa.
-- Repetir a consulta não deve duplicar os itens mesclados.
-- O cache é isolado entre visitantes e usuários autenticados.
-- O contador exibe a soma das quantidades dos itens.
-- Desktop e mobile compartilham o cache do TanStack Query.
-
-## Cupom e resumo financeiro
-
-O carrinho utiliza `POST /api/quotes` para obter
-subtotal, desconto, taxa de rede e total.
-
-### Funcionalidades
-
-- Cotação para Ethereum, Polygon e Solana.
-- Aplicação de cupons válidos.
-- Remoção de cupom.
-- Tratamento de cupom inválido ou expirado.
-- Nova cotação após alteração do carrinho ou da rede.
-- Skeletons com shimmer durante carregamento.
-- Erro com possibilidade de nova tentativa.
-
-### Cupons de demonstração
-
-- BEMVINDO10: desconto de 10%.
-- ARTE25: desconto de 25%.
-- VERAO5: cupom expirado.
-- Qualquer outro código: cupom inválido.
-
-### Precisão
-
-Os valores ETH são transportados como strings decimais.
-O MSW utiliza BigInt com escala fixa de 18 casas
-decimais para calcular valores sem ponto flutuante.
-
-O frontend exibe os resultados da API sem realizar
-cálculos financeiros com Number.
-
-### Limitações
-
-- As cotações expiram após cinco minutos.
-- O checkout deverá revalidar a cotação antes do pedido.
-
-## Checkout e pagamento
-
-A rota `/checkout` é protegida por autenticação.
-
-### Implementado
-
-- Navegação pelo carrinho preservando rede e cupom na URL.
-- Redirecionamento do visitante para login.
-- Recuperação do carrinho após autenticação.
-- Formulário com nome e e-mail do colecionador.
-- Validação dos campos antes da revisão.
-- Listagem das carteiras cadastradas via GET /api/wallets.
-- Seleção de rede e carteira compatível.
-- Simulação local de conexão e desconexão da carteira.
-- Revisão dos itens e valores da cotação.
-- Revalidação por POST /api/quotes.
-- Aviso quando os valores da cotação mudarem.
-- Estados de carregamento, vazio e erro.
-
-### Limitações desta etapa
-
-A conexão de carteira é simulada na interface.
-Não existe integração com carteira blockchain real.
-
-A Etapa 3 implementará recuperação após timeout,
-refresh ou reconexão.
-
-### Envio de pedidos
-
-O checkout envia POST /api/orders somente após
-validação dos campos, seleção de uma carteira compatível
-e revalidação da cotação.
-
-Cada nova tentativa recebe uma Idempotency-Key única.
-
-- Cliques repetidos são bloqueados no cliente.
-- O pedido é confirmado somente com status confirmed.
-- Status rejected apresenta o motivo da recusa.
-- Pagamento recusado não esvazia o carrinho.
-- Mudanças de preço, estoque ou cotação exigem revisão.
-- Falhas de rede não são tratadas como recusa.
-- Uma tentativa de resultado desconhecido mantém
-  a mesma chave e o mesmo corpo para recuperação.
-- O resultado pode ser verificado sem criar outra compra.
-
-### Cenários
-
-- payment-confirmed: pagamento aprovado.
-- payment-refused: pedido rejeitado, sem baixar estoque.
-- price-changed: preço alterado, exige nova cotação.
-- sold-out: estoque insuficiente, compra impedida.
-- order-timeout: resposta perdida após o pedido ser gravado.
-
-### Recuperação de pagamentos
-
-O checkout mantém uma tentativa pendente por usuário em
-localStorage.
-
-Cada registro contém:
-
-- Idempotency-Key original.
-- Corpo exato da requisição de criação do pedido.
-- Data de criação da tentativa.
-
-Após refresh, o checkout verifica se existe uma tentativa
-pendente antes de apresentar o estado de carrinho vazio.
-
-Quando encontra uma tentativa:
-
-- Exibe o estado de verificação do pagamento.
-- Reenvia a requisição original automaticamente.
-- Não gera outra chave de idempotência.
-- Não cria uma nova cotação para recuperar o pedido.
-- Oferece verificação manual em caso de falha.
-- Repete a verificação quando a conexão do navegador volta.
-
-Resultados:
-
-- Confirmed: exibe sucesso e remove a tentativa pendente.
-- Rejected: exibe recusa e permite revisar outra compra.
-- Pending: mantém a tentativa sem iniciar outra compra.
-- Falha de rede ou 5xx: mantém a tentativa para recuperação.
-- Falha conclusiva de negócio: encerra a tentativa inválida.
-
-O carrinho pode já estar vazio após um timeout caso o MSW
-tenha confirmado o pedido antes de perder a resposta.
-
-O mecanismo de idempotência impede a criação de pedidos
-duplicados quando a mesma chave e o mesmo corpo são reenviados.
-
-## Confirmação e recibo
-
-A rota `/orders/:orderId/confirmation` apresenta o
-resultado de um pedido persistido na API simulada.
-
-### Funcionalidades
-
-- Consulta autenticada via GET /api/orders/:orderId.
-- Navegação após pagamento confirmado.
-- Navegação após recuperação de pagamento com timeout.
-- Recibo disponível novamente após refresh.
-- Estado de carregamento com skeleton.
-- Erro de consulta com nova tentativa.
-- Estado específico para pedido inexistente.
-- Pedidos recusados ou pendentes não exibem sucesso.
-- Isolamento de pedidos por usuário autenticado.
-- Layout responsivo para desktop e mobile.
-
-### Recibo
-
-O recibo apresenta:
-
-- Identificador do pedido.
-- Data e status.
-- Referência da transação.
-- Rede e carteira utilizada.
-- Dados do colecionador.
-- NFTs, edições e quantidades compradas.
-- Preços unitários e totais dos itens.
-- Subtotal, desconto, taxa de rede e total.
-- Cupom aplicado, quando existir.
-
-### Snapshot financeiro
-
-Todos os valores financeiros são exibidos diretamente
-de `order.receipt`, gravado no momento da compra.
-
-A página não reconstrói o recibo consultando os preços
-atuais do catálogo.
-
-Os valores ETH permanecem representados como strings
-decimais, sem cálculos com Number no frontend.
-
-### Carrinho
-
-Após uma confirmação, o MSW desconta somente as
-quantidades presentes na cotação comprada.
-
-Pagamentos recusados não removem itens.
-
-A versão do carrinho é validada antes do pedido,
-evitando executar cotações antigas sobre um carrinho
-modificado.
-
-### Integração e conclusão
-
-O carrinho está integrado ao TanStack Query e à API
-simulada pelo MSW.
-
-A sincronização em tempo real utiliza Socket.IO:
-
-- Atualização de preço e disponibilidade sem refresh.
-- Atualização dos detalhes dos NFTs no cache.
-- Revalidação das cotações após alterações do catálogo.
-- Proteção contra eventos duplicados e versões antigas.
-- Reconciliação com REST após reconexão.
-
-A persistência e a mesclagem visitante → autenticado
-funcionam para os dois usuários fictícios.
-
-O alerta específico de cotação desatualizada e o
-bloqueio de confirmação pertencem à Issue 20.
-
-## Socket.IO com MSW
-
-A aplicação utiliza socket.io-client para estabelecer
-uma conexão WebSocket com o servidor simulado pelo MSW.
-
-O MSW 3 intercepta a conexão Socket.IO na camada de rede.
-
-### Transporte
-
-- Engine.IO 4 via WebSocket.
-- Namespace Socket.IO padrão.
-- Sem HTTP long-polling.
-- Eventos textuais em JSON.
-- Sem suporte a mensagens binárias.
-- Handshake local adaptado para MSW 3.
-
-O adaptador local evita a incompatibilidade declarada
-entre o binding publicado para MSW 2 e o MSW 3
-utilizado pelo projeto.
-
-### Diagnóstico
-
-Execute no Console:
-
-window.mocks.probeRealtime()
-
-Para alterar um NFT e emitir um evento:
-
+| `success` / `payment-confirmed` | Operação bem-sucedida |
+| `empty` | Catálogo vazio |
+| `latency` | Atraso determinístico nas operações |
+| `out-of-order` | Respostas de listagens fora da ordem de envio |
+| `network-error` | Falha de rede nos recursos de negócio |
+| `http-4xx` / `http-5xx` | Respostas 403 / 503 |
+| `session-expired` | Sessão expirada (401) |
+| `register-conflict` | Conflito no cadastro |
+| `validation-error` | Erros de campos (422) |
+| `coupon-invalid` / `coupon-expired` | Erros de cupom |
+| `price-changed` | Preço alterado durante tentativa de pedido |
+| `sold-out` | Estoque insuficiente |
+| `payment-refused` | Pedido recusado, sem reduzir estoque |
+| `order-timeout` | Pedido gravado, mas resposta perdida; recuperação idempotente |
+
+Para experimentar o transporte em tempo real sem mudar o cache diretamente:
+
+```js
 window.mocks.updateNftEdition({
   nftId: 'nft-01',
   editionId: 'nft-01-standard',
   priceEth: '1.35',
-  availableQuantity: 4
+  availableQuantity: 4,
 })
-
-Para encerrar a conexão:
-
-window.mocks.stopRealtimeProbe()
-
-A operação altera o banco simulado, incrementa a
-versão e publica nft.updated pelo WebSocket.
-
-O cliente deve receber o mesmo recurso que será
-devolvido em GET /api/nfts/:nftId.
-
-### Eventos de tempo real
-
-O servidor simulado publica:
-
-- `nft.updated`: mudanças de preço e estoque, inclusive
-  após compras confirmadas.
-- `order.updated`: criação de pedidos confirmados
-  ou recusados.
-
-Os eventos são emitidos após persistência das alterações
-no banco simulado.
-
-### Segurança e sessões
-
-- Visitantes recebem somente eventos públicos de NFT.
-- Conexões autenticadas enviam o token no handshake.
-- O token não é registrado no Console.
-- Eventos de pedido são filtrados pelo usuário.
-- O mock revalida a sessão antes de enviar eventos privados.
-- O socket de diagnóstico é encerrado em logout ou
-  troca de sessão.
-
-
-## Cliente de tempo real
-
-A aplicação estabelece automaticamente uma conexão
-Socket.IO após a inicialização do MSW.
-
-A conexão utiliza socket.io-client real e consome:
-
-- nft.updated
-- order.updated
-
-Os eventos são aplicados ao TanStack Query.
-
-### NFTs
-
-- Atualização imediata dos detalhes em cache.
-- Atualização das listagens que contêm o NFT.
-- Revalidação de filtros, ordenação e paginação.
-- Revalidação de cotações ativas.
-- Descarte de eventos duplicados e antigos.
-
-### Pedidos
-
-- Validação do usuário e da conexão.
-- Atualização do cache do pedido.
-- Preservação de estados terminais.
-- Invalidação do carrinho após confirmação.
-
-### Ciclo de vida
-
-- Conexão automática ao iniciar a aplicação.
-- Import dinâmico do Socket.IO após a inicialização do MSW.
-- Desconexão no logout e na troca de sessão.
-- Remoção dos listeners durante a desmontagem.
-- Revalidação de consultas ativas após conexão.
-
-A verificação de respostas REST fora de ordem,
-reconexão e proteção adicional contra regressões
-será concluída na Etapa 2.
-
-### Concorrência e reconciliação
-
-A aplicação mantém em memória a versão mais recente
-conhecida de cada NFT e pedido.
-
-As respostas REST e os eventos Socket.IO compartilham
-a mesma proteção contra versões antigas.
-
-- Eventos duplicados são descartados.
-- Eventos anteriores à versão conhecida são ignorados.
-- Respostas REST atrasadas não substituem dados mais recentes.
-- Pedidos confirmados e recusados são terminais.
-- A queda do WebSocket não impede o acesso à API REST.
-- Após reconexão, consultas ativas são revalidadas.
-- A troca de sessão descarta snapshots e caches privados.
-
-### Diagnóstico
-
-O MSW permite reproduzir eventos publicados:
-
-window.mocks.replayNftEvent(eventId)
-
-Também permite interromper conexões WebSocket:
-
-window.mocks.disconnectRealtimeClients()
-
-Ambos os controles existem apenas na infraestrutura
-de mocks e não atualizam diretamente os componentes React.
-
-Os testes automatizados de concorrência e reconexão
-serão adicionados à suíte Playwright da Issue 23.
-
-# React + TypeScript + Vite
-
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
-
-Currently, two official plugins are available:
-
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
 ```
 
-You can also install [eslint-plugin-react-x](https://npmx.dev/package/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://npmx.dev/package/eslint-plugin-react-dom) for React-specific lint rules:
+Outros controles de diagnóstico: `await window.mocks.probeRealtime()`, `window.mocks.stopRealtimeProbe()`, `window.mocks.disconnectRealtimeClients()` e `window.mocks.replayNftEvent(eventId)`.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+### Reproduzir falhas importantes
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+- **Pagamento recusado:** autentique-se, prepare carrinho e checkout, ative `payment-refused` e confirme o pagamento.
+- **Cotação/preço alterado:** prepare a cotação, ative `price-changed` e tente confirmar; a API bloqueia o pedido com conflito até nova cotação.
+- **Estoque esgotado:** use `sold-out` antes da confirmação.
+- **Timeout após criação:** use `order-timeout`; a primeira resposta falha, mas o mesmo pedido pode ser recuperado pela chave de idempotência, sem gerar uma segunda compra.
+- **Falha no catálogo:** use `network-error` ou `http-5xx` para verificar o feedback e a opção de tentar novamente.
 
-```
+Para retornar ao estado inicial, use `await window.mocks.reset()`. O reset apaga o banco de demonstração armazenado naquele navegador, incluindo pedidos e carrinhos.
+
+## Deploy
+
+A aplicação está publicada na **Vercel**:
+
+https://frontend-challenge-two-ruddy.vercel.app/
+
+O build de produção usa `npm run build`, publica `dist/` e requer as variáveis `VITE_ENABLE_MOCKS=true` e `VITE_API_BASE_URL=/api`. As rotas de aplicação única (SPA) precisam retornar `index.html` para que o acesso direto e o refresh funcionem. A publicação vinculada ao GitHub pode ser atualizada com novos commits na branch de produção.
+
+## Limitações conhecidas
+
+O projeto foi desenvolvido para uma entrega com prazo limitado. As seguintes restrições permanecem explícitas:
+
+- **Perfil e carteiras:** as APIs simuladas existem e o checkout consulta carteiras, mas as páginas `/profile` e `/wallets` ainda apresentam conteúdo provisório, sem formulários completos de gerenciamento.
+- **Cotação em tempo real:** a revalidação e os bloqueios de negócio existem; o aviso visual dedicado à alteração recebida durante o checkout ainda não está integralmente concluído.
+- **Testes automatizados:** os dois testes iniciais da home (desktop e mobile) foram aprovados. A suíte completa de compra, erros, timeout e WebSocket ainda precisa de ampliação e execução verificável.
+- **Fidelidade visual e acessibilidade:** há aproximações em relação a alguns frames do Figma e a revisão final das três larguras de referência não foi concluída nesta documentação.
+- **Lighthouse:** não são informadas pontuações ou medianas sem medições registradas. Auditoria completa pendente.
+- **Backend:** MSW e `localStorage` simulam serviços e persistência no navegador; não há serviço de produção, integração blockchain ou custódia real.
+
+As escolhas e restrições técnicas estão detalhadas no [ARCHITECTURE.md](./ARCHITECTURE.md).
