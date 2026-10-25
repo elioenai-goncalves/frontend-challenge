@@ -682,15 +682,20 @@ Limites da validação
 - A sessão autenticada utiliza o token do cliente Axios.
 - O cache do carrinho é isolado por usuário ou visitante.
 - A navegação para o carrinho só ocorre após sucesso.
-- A mesclagem visitante/autenticado fica para a Issue 16.
+- A mesclagem visitante/autenticado foi implementada
+  na Issue 16, com validação de estoque e limites.
 
 ### Limitações e continuidade
 
 - A galeria depende das imagens disponíveis no catálogo.
 - O Figma ainda requer conferência visual fina da página.
-- A interface do carrinho será concluída na Issue 16.
-- O suporte a eventos de tempo real pertence às Issues 10 e 11.
-
+- A interface do carrinho está implementada e integrada
+  à API simulada e ao TanStack Query.
+- O suporte a eventos de tempo real foi concluído
+  nas Issues 10 e 11.
+- O alerta de cotação desatualizada será tratado
+  na Issue 20.
+  
 ## Carrinho
 
 ### Camada de dados

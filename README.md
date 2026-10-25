@@ -209,14 +209,6 @@ o carrinho do usuário.
 - O contador exibe a soma das quantidades dos itens.
 - Desktop e mobile compartilham o cache do TanStack Query.
 
-### Limitações
-
-- A sincronização do carrinho por eventos Socket.IO
-  depende da Issue 11.
-- Cupom, subtotal, descontos, taxas e total pertencem
-  à Issue 17.
-- Pagamento e confirmação pertencem às Issues 18 e 19.
-
 ## Cupom e resumo financeiro
 
 O carrinho utiliza `POST /api/quotes` para obter
@@ -252,8 +244,6 @@ cálculos financeiros com Number.
 
 - As cotações expiram após cinco minutos.
 - O checkout deverá revalidar a cotação antes do pedido.
-- Atualizações de valores por Socket.IO pertencem
-  às Issues 11 e 20.
 
 ## Checkout e pagamento
 
@@ -281,8 +271,6 @@ Não existe integração com carteira blockchain real.
 
 A Etapa 3 implementará recuperação após timeout,
 refresh ou reconexão.
-
-A tela de recibo pertence à Issue 19.
 
 ### Envio de pedidos
 
@@ -400,6 +388,25 @@ Pagamentos recusados não removem itens.
 A versão do carrinho é validada antes do pedido,
 evitando executar cotações antigas sobre um carrinho
 modificado.
+
+### Integração e conclusão
+
+O carrinho está integrado ao TanStack Query e à API
+simulada pelo MSW.
+
+A sincronização em tempo real utiliza Socket.IO:
+
+- Atualização de preço e disponibilidade sem refresh.
+- Atualização dos detalhes dos NFTs no cache.
+- Revalidação das cotações após alterações do catálogo.
+- Proteção contra eventos duplicados e versões antigas.
+- Reconciliação com REST após reconexão.
+
+A persistência e a mesclagem visitante → autenticado
+funcionam para os dois usuários fictícios.
+
+O alerta específico de cotação desatualizada e o
+bloqueio de confirmação pertencem à Issue 20.
 
 ## Socket.IO com MSW
 
