@@ -630,3 +630,33 @@ Limites da validação
   cheia; o texto de apoio do hero é aproximado.
 - Estados: esqueleto com as dimensões do card, vazio, erro com nova tentativa
   e página fora do intervalo.
+
+## Detalhe do NFT
+
+### Consulta e cache
+
+- `useNftDetail` consulta `GET /nfts/:nftId`.
+- As query keys incluem usuário e identificador do NFT.
+- O Axios recebe o AbortSignal do TanStack Query.
+- Respostas 404 não são repetidas automaticamente.
+
+### Seleção e disponibilidade
+
+- A edição inicial é a primeira disponível.
+- O limite de quantidade é o menor entre
+  `availableQuantity` e `maxPerOrder`.
+- Edições esgotadas não permitem quantidade.
+- A mudança de edição reinicia a quantidade para 1.
+
+### Estados da interface
+
+- Skeleton durante carregamento.
+- Estado específico para NFT inexistente.
+- Erro com opção de nova tentativa para falhas da API.
+- Seleção de imagens preparada para múltiplos assets.
+
+### Pendências
+
+- Integrar favoritos com autenticação e mutations.
+- Integrar adição ao carrinho para visitante e usuário.
+- Conferir composição visual com os frames do Figma.

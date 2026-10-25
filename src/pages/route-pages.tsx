@@ -1,6 +1,8 @@
 import {
   Link,
 } from '@tanstack/react-router'
+
+export { NftDetailsPage } from './nft-details-page'
 interface PlaceholderPageProps {
   title: string
   description: string
@@ -18,15 +20,6 @@ function PlaceholderPage({
         {description}
       </p>
     </section>
-  )
-}
-
-export function NftDetailsPage() {
-  return (
-    <PlaceholderPage
-      title="Detalhes do NFT"
-      description="O detalhe será implementado na Issue 14."
-    />
   )
 }
 

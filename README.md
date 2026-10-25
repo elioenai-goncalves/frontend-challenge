@@ -97,6 +97,22 @@ A chave é isolada por usuário.
 Para reproduzir a recuperação após timeout, ative o cenário `order-timeout`,
 envie um pedido e, depois do erro de rede, repita a mesma chave.
 
+## Detalhe do NFT
+
+A rota `/nfts/:nftId` consulta `GET /api/nfts/:nftId`
+por Axios e TanStack Query.
+
+A tela apresenta imagem, informações, edições,
+disponibilidade, preço e controle de quantidade.
+
+- A quantidade respeita o estoque e o limite por pedido.
+- NFTs inexistentes apresentam estado de não encontrado.
+- Falhas da API apresentam opção de nova tentativa.
+- O carregamento utiliza skeletons com shimmer.
+
+A integração de favoritos e compra será concluída
+na segunda etapa da Issue 14.
+
 # React + TypeScript + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
