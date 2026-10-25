@@ -468,8 +468,45 @@ no banco simulado.
 - O socket de diagnóstico é encerrado em logout ou
   troca de sessão.
 
-A interface ainda não consome os eventos para atualizar
-o TanStack Query. Essa integração pertence à Issue 11.
+
+## Cliente de tempo real
+
+A aplicação estabelece automaticamente uma conexão
+Socket.IO após a inicialização do MSW.
+
+A conexão utiliza socket.io-client real e consome:
+
+- nft.updated
+- order.updated
+
+Os eventos são aplicados ao TanStack Query.
+
+### NFTs
+
+- Atualização imediata dos detalhes em cache.
+- Atualização das listagens que contêm o NFT.
+- Revalidação de filtros, ordenação e paginação.
+- Revalidação de cotações ativas.
+- Descarte de eventos duplicados e antigos.
+
+### Pedidos
+
+- Validação do usuário e da conexão.
+- Atualização do cache do pedido.
+- Preservação de estados terminais.
+- Invalidação do carrinho após confirmação.
+
+### Ciclo de vida
+
+- Conexão automática ao iniciar a aplicação.
+- Import dinâmico do Socket.IO após a inicialização do MSW.
+- Desconexão no logout e na troca de sessão.
+- Remoção dos listeners durante a desmontagem.
+- Revalidação de consultas ativas após conexão.
+
+A verificação de respostas REST fora de ordem,
+reconexão e proteção adicional contra regressões
+será concluída na Etapa 2.
 
 # React + TypeScript + Vite
 

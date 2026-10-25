@@ -978,8 +978,47 @@ namespace padrão. Não implementa polling, mensagens
 binárias ou funcionalidades completas de um servidor
 Socket.IO de produção.
 
-Na Issue 11, o cliente implementará:
-- atualização do cache a partir dos eventos;
-- descarte de eventos duplicados e antigos;
-- reconciliação REST após reconexão;
-- gerenciamento do ciclo de vida das conexões.
+## Consumo de eventos
+
+`RealtimeSync` mantém uma conexão Socket.IO para
+a sessão atual da aplicação.
+
+`realtime-cache.ts` aplica os eventos ao TanStack Query.
+
+Os componentes React não recebem dados diretamente
+do MSW nem utilizam setters para simular eventos.
+
+### Sincronização de NFTs
+
+Um evento NFT só é aplicado quando sua identidade
+e versão são coerentes.
+
+Consultas REST anteriores são canceladas antes de
+aplicar o evento.
+
+As listagens e detalhes em cache são atualizados,
+seguidos da revalidação das consultas ativas.
+
+### Sincronização de pedidos
+
+O cliente verifica a identidade da conexão e
+do proprietário do pedido.
+
+Versões antigas são ignoradas.
+
+Estados confirmed e rejected não regridem para pending.
+
+### Reconciliação
+
+A conexão Socket.IO invalida as consultas ativas
+para recuperar alterações perdidas durante a ausência
+de comunicação em tempo real.
+
+### Ciclo de vida
+
+As conexões e listeners são encerrados na troca
+de sessão e na desmontagem do componente.
+
+O carregamento dinâmico do socket.io-client evita
+a captura do WebSocket nativo antes da inicialização
+da interceptação do MSW.
