@@ -3,7 +3,12 @@ import { test, expect } from "@playwright/test";
 test("deve carregar a página inicial com NFTs", async ({ page }, testInfo) => {
   await page.goto("/");
 
-  await expect(page.getByRole("heading", { name: "Destaques" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", {
+      level: 1,
+      name: /SEJA DONO D(?:O FUTURO|A CULTURA)/i,
+    }),
+  ).toBeVisible();
 
   if (testInfo.project.name === "chromium-mobile") {
     await expect(

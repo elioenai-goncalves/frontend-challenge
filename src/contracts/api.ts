@@ -31,10 +31,10 @@ export type ApiErrorCode =
 
 export interface ApiErrorResponse {
   error: {
-    code: ApiErrorCode
-    message: string
-    fieldErrors?: Record<string, string>
-  }
+    code: ApiErrorCode;
+    message: string;
+    fieldErrors?: Record<string, string>;
+  };
 }
 
 // ======================================================
@@ -94,13 +94,11 @@ export interface Nft {
   version: number;
 }
 
-export type NftSort =
-  | "recent"
-  | "price-asc"
-  | "price-desc"
-  | "name-asc";
+export type NftSort = "recent" | "price-asc" | "price-desc" | "name-asc";
 
+export type CatalogTab = "all" | "new" | "trending";
 export interface ListNftsRequest {
+  tab?: CatalogTab
   search?: string;
   collectionIds?: string[];
   categories?: string[];
@@ -110,7 +108,7 @@ export interface ListNftsRequest {
   sort?: NftSort;
   page?: number;
   pageSize?: number;
-  featured?: boolean
+  featured?: boolean;
 }
 
 export interface ListNftsResponse {
@@ -125,10 +123,10 @@ export interface NftResponse {
 }
 
 export interface NftFacetsResponse {
-  categories: { name: string; count: number }[]
-  collections: { id: string; name: string; count: number }[]
-  networks: { network: Network; count: number }[]
-  priceRange: { minEth: EthAmount; maxEth: EthAmount } | null
+  categories: { name: string; count: number }[];
+  collections: { id: string; name: string; count: number }[];
+  networks: { network: Network; count: number }[];
+  priceRange: { minEth: EthAmount; maxEth: EthAmount } | null;
 }
 
 // ======================================================

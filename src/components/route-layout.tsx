@@ -32,7 +32,7 @@ export function RouteLayout() {
 
       <main
         className={[
-          "px-6 py-12",
+          "px-6 py-6 lg:py-12",
           pathname === "/"
             ? "pb-[calc(8rem+env(safe-area-inset-bottom))] lg:pb-12"
             : "",

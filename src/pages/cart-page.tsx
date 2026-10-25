@@ -215,19 +215,19 @@ export function CartPage() {
                 return (
                   <li
                     key={item.id}
-                    className="rounded-lg border border-border bg-card p-4"
+                    className="rounded-lg border border-border bg-card p-3 sm:p-4"
                   >
-                    <div className="flex flex-col gap-4 sm:flex-row">
+                    <div className="flex items-start gap-3">
                       {nft?.imageUrls[0] ? (
                         <img
                           src={nft.imageUrls[0]}
                           alt={nft.name}
                           width={160}
                           height={160}
-                          className="aspect-square w-full rounded-md object-cover sm:size-32 sm:shrink-0"
+                          className="size-24 shrink-0 rounded-md object-cover sm:size-32"
                         />
                       ) : (
-                        <div className="grid aspect-square w-full place-items-center rounded-md bg-background text-sm text-text-secondary sm:size-32">
+                        <div className="grid size-24 shrink-0 place-items-center rounded-md bg-background text-xs text-text-secondary sm:size-32">
                           Imagem indisponível
                         </div>
                       )}
