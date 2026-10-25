@@ -47,7 +47,7 @@ O MSW é inicializado antes da renderização da aplicação. O arquivo `public/
 | `npm run lint` | Executar ESLint |
 | `npm run build` | Gerar o build em `dist/` |
 | `npm run preview` | Servir o build localmente |
-| `npm run test:e2e` | Executar os testes Playwright (quando configurados no checkout) |
+| `npm run test:e2e` | Executar toda a suíte Playwright (Chromium desktop e mobile) |
 | `npm run test:e2e:report` | Abrir o relatório HTML do Playwright |
 
 Para instalar o navegador usado pelos testes:
@@ -64,7 +64,33 @@ npm run test:e2e
 Remove-Item Env:PLAYWRIGHT_BASE_URL
 ```
 
-**Cobertura E2E efetivamente validada até esta revisão:** teste de carregamento da página inicial nos projetos Chromium desktop (1440 px) e mobile (390 px). Os demais fluxos ainda não devem ser interpretados como cobertos por testes automatizados.
+### Testes E2E — evidências de execução
+
+Os arquivos `tests/e2e/home.spec.ts` e `tests/e2e/purchase.spec.ts` são executados pelo Playwright, com os perfis **Chromium desktop (1440 × 900)** e **Chromium mobile (390 × 844)**. A execução de **25/10/2026, informada pelo desenvolvedor**, apresentou **12/12 execuções aprovadas**: são **6 cenários executados em cada viewport**, não 12 fluxos funcionalmente distintos.
+
+| Teste | Validação automatizada |
+| --- | --- |
+| Home (smoke) | Carregamento, título principal e controles de navegação pertinentes a desktop/mobile |
+| 01 — Compra completa | Detalhe do NFT → carrinho → login → seleção/conexão de carteira simulada → revalidação → confirmação; recibo persiste após refresh |
+| 02 — Carrinho e cupom | Alteração de quantidade, persistência após F5, mesclagem do carrinho visitante após login e desconto `BEMVINDO10` na cotação |
+| 03 — Pagamento recusado | Cenário `payment-refused`, clique repetido no botão e ausência de pedido duplicado |
+| 04 — Timeout e recuperação | Cenário `order-timeout`, pedido confirmado no armazenamento do mock apesar da resposta perdida, recuperação após F5 e idempotência |
+| 05 — Preço via Socket.IO | Emissão de `nft.updated`, atualização do valor exibido no checkout, bloqueio de confirmação com cotação antiga e aprovação após nova revisão |
+
+Os testes reiniciam o estado do MSW para isolar os cenários de compra. O runner utiliza relatório HTML, screenshots, vídeos e traces de falha; os artefatos gerados não devem ser versionados.
+
+```bash
+npm run test:e2e
+npm run test:e2e:report
+```
+
+Para executar apenas os fluxos de compra no desktop:
+
+```bash
+npx playwright test tests/e2e/purchase.spec.ts --project=chromium-desktop
+```
+
+**Limite da evidência:** o resultado 12/12 foi relatado **antes da rodada visual mais recente de carrinho e autenticação**. Se essas alterações foram aplicadas depois, a suíte precisa ser reexecutada antes de declarar a versão final novamente aprovada. Os testes também não substituem uma auditoria completa de acessibilidade, responsividade, regressão visual e Lighthouse.
 
 ## Credenciais fictícias
 
@@ -79,17 +105,17 @@ Use essas contas apenas na aplicação de demonstração. O cadastro de novos us
 
 ### Catálogo e detalhes
 
-- Listagem, destaques, busca, filtros por categoria, coleção, rede e preço, ordenação e paginação.
-- Detalhe de NFT com imagens, atributos, edições, estoque e limite por pedido.
+- Listagem, busca e filtros por categoria, coleção, rede e preço (inclusive faixa com slider duplo), ordenação e paginação numérica. Abas de catálogo incluem **Todos os NFTs**, **Novos lançamentos** e **Em alta**; a última reaproveita a marcação `featured` da API simulada, sem inventar métrica de popularidade.
+- Detalhe de NFT com galeria, atributos, edições, estoque, limite por pedido e controles de compra; composição adaptada a desktop e mobile.
 - Favoritos com atualização otimista, rollback em caso de erro e isolamento por usuário.
-- Estados de carregamento, lista vazia, erro e recurso inexistente.
+- Seções editoriais de Home (banners, artigos demonstrativos e NFT em destaque), além de estados de carregamento, lista vazia, erro e recurso inexistente.
 
 ### Autenticação e carrinho
 
-- Cadastro, login, recuperação de sessão após refresh, logout e proteção de rotas privadas.
+- Cadastro, login, recuperação de sessão após refresh, logout e proteção de rotas privadas. Apresentação de autenticação em modal no desktop e formulário adaptado no mobile.
 - Carrinho para visitantes e usuários autenticados: adicionar, alterar quantidade e remover itens.
 - Persistência local após refresh e mesclagem do carrinho visitante ao autenticar, respeitando limites de estoque.
-- Contador de itens compartilhado entre página, cabeçalho desktop e navegação mobile.
+- Contador de itens compartilhado entre página, cabeçalho desktop e navegação mobile. Carrinho com apresentação em tabela no desktop e cartões compactos no mobile, preservando atualização de quantidade e remoção.
 - Atualização de preços e disponibilidade na interface sem recarregar a página.
 
 ### Cotação e checkout
@@ -177,7 +203,7 @@ A aplicação está publicada na **Vercel**:
 
 https://frontend-challenge-two-ruddy.vercel.app/
 
-O build de produção usa `npm run build`, publica `dist/` e requer as variáveis `VITE_ENABLE_MOCKS=true` e `VITE_API_BASE_URL=/api`. As rotas de aplicação única (SPA) precisam retornar `index.html` para que o acesso direto e o refresh funcionem. A publicação vinculada ao GitHub pode ser atualizada com novos commits na branch de produção.
+O build de produção usa `npm run build`, publica `dist/` e requer as variáveis `VITE_ENABLE_MOCKS=true` e `VITE_API_BASE_URL=/api`. As rotas de aplicação única (SPA) precisam retornar `index.html` para que o acesso direto e o refresh funcionem. A publicação vinculada ao GitHub pode ser atualizada com novos commits na branch de produção. **Os ajustes locais e os testes descritos aqui só estarão refletidos na URL pública depois de commit, push e um deploy concluído; verifique o deployment final na Vercel.**
 
 ## Limitações conhecidas
 
@@ -185,9 +211,11 @@ O projeto foi desenvolvido para uma entrega com prazo limitado. As seguintes res
 
 - **Perfil e carteiras:** as APIs simuladas existem e o checkout consulta carteiras, mas as páginas `/profile` e `/wallets` ainda apresentam conteúdo provisório, sem formulários completos de gerenciamento.
 - **Cotação em tempo real:** a revalidação e os bloqueios de negócio existem; o aviso visual dedicado à alteração recebida durante o checkout ainda não está integralmente concluído.
-- **Testes automatizados:** os dois testes iniciais da home (desktop e mobile) foram aprovados. A suíte completa de compra, erros, timeout e WebSocket ainda precisa de ampliação e execução verificável.
-- **Fidelidade visual e acessibilidade:** há aproximações em relação a alguns frames do Figma e a revisão final das três larguras de referência não foi concluída nesta documentação.
-- **Lighthouse:** não são informadas pontuações ou medianas sem medições registradas. Auditoria completa pendente.
+- **Testes automatizados:** seis cenários foram executados em dois viewports, com último resultado reportado de 12/12 aprovações. **Não representam cobertura integral do enunciado**: faltam outros cenários extremos, regressão visual automatizada e verificação abrangente de reconexões/erros. A última rodada de polimento visual deve ser testada novamente se posterior à execução reportada.
+- **Fidelidade ao Figma:** foi realizado polimento das principais telas desktop/mobile, mas ainda há diferenças de conteúdo, recursos simplificados, estados secundários e detalhes de composição. **Não é uma reprodução 100% pixel-perfect.** Banners e artigos editoriais são demonstrativos, sem sistema de publicação completo.
+- **Responsividade e acessibilidade:** E2E automatizado em 390 × 844 e 1440 × 900; revisão integral de 768 px, zoom, navegação por teclado, contraste e demais critérios de acessibilidade ainda não foi concluída.
+- **Lighthouse:** não há relatórios com três medições por página/perfil e medianas de Performance, Accessibility, Best Practices, SEO, LCP, CLS e TBT. Não são atribuídas pontuações sem medições.
+- **Escopo visual incompleto:** algumas interações de conteúdo e recursos fora dos fluxos principais, como páginas editoriais completas e estados auxiliares do Figma, permanecem aproximados ou não implementados.
 - **Backend:** MSW e `localStorage` simulam serviços e persistência no navegador; não há serviço de produção, integração blockchain ou custódia real.
 
 As escolhas e restrições técnicas estão detalhadas no [ARCHITECTURE.md](./ARCHITECTURE.md).
