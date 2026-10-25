@@ -921,3 +921,44 @@ Resposta:
 - As transações blockchain são simuladas.
 - A atualização em tempo real de pedidos pertence
   às Issues 11 e 20.
+
+## Tempo real
+
+### Transporte
+
+- `src/lib/realtime-client.ts`: cliente Socket.IO real.
+- `src/mocks/socket-io.ts`: transporte e handshake simulado.
+- `src/mocks/start.ts`: operações de diagnóstico.
+- `src/mocks/handlers/index.ts`: registro do WebSocket no MSW.
+
+A conexão utiliza o transporte WebSocket e o
+namespace padrão do Socket.IO.
+
+### Eventos
+
+nft.updated contém:
+- eventId
+- resourceId
+- version
+- occurredAt
+- nft
+
+O evento é emitido depois da mutação persistida
+no banco simulado.
+
+A consulta REST e o evento reutilizam os mesmos
+dados de negócio.
+
+### Responsabilidades
+
+- O mock é responsável pela emissão.
+- O socket.io-client é responsável pelo consumo.
+- O frontend não utiliza setters de estado para simular
+  o recebimento de eventos.
+- A reconciliação com TanStack Query será feita na #11.
+
+### Pendências
+
+- Autenticar e isolar eventos order.updated.
+- Integrar os eventos às operações de pedido.
+- Controlar duplicatas, versões e reconexão na #11.

@@ -1,3 +1,4 @@
+import { realtimeHandlers } from '../socket-io'
 import { authHandlers } from './auth'
 import { cartHandlers } from './cart'
 import { favoriteHandlers } from './favorites'
@@ -9,6 +10,7 @@ import { scenarioHandlers } from './scenario'
 import { walletHandlers } from './wallets'
 
 export const handlers = [
+  ...realtimeHandlers,
   ...scenarioHandlers,
   ...authHandlers,
   ...nftHandlers,

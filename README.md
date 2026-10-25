@@ -401,6 +401,59 @@ A versão do carrinho é validada antes do pedido,
 evitando executar cotações antigas sobre um carrinho
 modificado.
 
+## Socket.IO com MSW — Issue 10 (Etapa 2)
+
+A aplicação utiliza socket.io-client para estabelecer
+uma conexão WebSocket com o servidor simulado pelo MSW.
+
+O MSW 3 intercepta a conexão Socket.IO na camada de rede.
+
+### Transporte
+
+- Engine.IO 4 via WebSocket.
+- Namespace Socket.IO padrão.
+- Sem HTTP long-polling.
+- Eventos textuais em JSON.
+- Sem suporte a mensagens binárias.
+- Handshake local adaptado para MSW 3.
+
+O adaptador local evita a incompatibilidade declarada
+entre o binding publicado para MSW 2 e o MSW 3
+utilizado pelo projeto.
+
+### Diagnóstico
+
+Execute no Console:
+
+window.mocks.probeRealtime()
+
+Para alterar um NFT e emitir um evento:
+
+window.mocks.updateNftEdition({
+  nftId: 'nft-01',
+  editionId: 'nft-01-standard',
+  priceEth: '1.35',
+  availableQuantity: 4
+})
+
+Para encerrar a conexão:
+
+window.mocks.stopRealtimeProbe()
+
+A operação altera o banco simulado, incrementa a
+versão e publica nft.updated pelo WebSocket.
+
+O cliente deve receber o mesmo recurso que será
+devolvido em GET /api/nfts/:nftId.
+
+### Próxima etapa
+
+Integrar a publicação de eventos de pedidos com
+autenticação e isolamento entre sessões.
+
+A atualização das telas e do cache será implementada
+na Issue 11.
+
 # React + TypeScript + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
