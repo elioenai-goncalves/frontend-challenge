@@ -3,6 +3,7 @@ import {
 } from '@tanstack/react-router'
 
 export { NftDetailsPage } from './nft-details-page'
+export { CartPage } from './cart-page'
 interface PlaceholderPageProps {
   title: string
   description: string
@@ -20,15 +21,6 @@ function PlaceholderPage({
         {description}
       </p>
     </section>
-  )
-}
-
-export function CartPage() {
-  return (
-    <PlaceholderPage
-      title="Carrinho"
-      description="O carrinho será implementado na Issue 16."
-    />
   )
 }
 

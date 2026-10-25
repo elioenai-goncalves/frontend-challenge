@@ -1,9 +1,15 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query'
 
 import type {
   AddCartItemRequest,
   CartResponse,
+  UpdateCartItemRequest,
 } from '@/contracts/api'
+
 import { api } from '@/lib/api-client'
 
 const GUEST_CART_STORAGE_KEY =
@@ -26,12 +32,38 @@ export function getGuestCartId(): string {
   return guestId
 }
 
+function cartHeaders(userId: string | null) {
+  if (userId !== null) return undefined
+
+  return {
+    'X-Guest-Cart-Id': getGuestCartId(),
+  }
+}
+
 export const cartKeys = {
   forOwner: (userId: string | null) =>
     [
       'cart',
       userId ?? `guest:${getGuestCartId()}`,
     ] as const,
+}
+
+export function useCart(userId: string | null) {
+  return useQuery({
+    queryKey: cartKeys.forOwner(userId),
+
+    queryFn: async ({ signal }) => {
+      const { data } = await api.get<CartResponse>(
+        '/cart',
+        {
+          headers: cartHeaders(userId),
+          signal,
+        },
+      )
+
+      return data
+    },
+  })
 }
 
 export function useAddCartItem(userId: string | null) {
@@ -42,13 +74,70 @@ export function useAddCartItem(userId: string | null) {
       const { data } = await api.post<CartResponse>(
         '/cart/items',
         item,
-        userId
-          ? undefined
-          : {
-              headers: {
-                'X-Guest-Cart-Id': getGuestCartId(),
-              },
-            },
+        {
+          headers: cartHeaders(userId),
+        },
+      )
+
+      return data
+    },
+
+    onSuccess: (data) => {
+      queryClient.setQueryData(
+        cartKeys.forOwner(userId),
+        data,
+      )
+    },
+  })
+}
+
+interface UpdateCartItemInput {
+  itemId: string
+  quantity: number
+}
+
+export function useUpdateCartItem(userId: string | null) {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({
+      itemId,
+      quantity,
+    }: UpdateCartItemInput) => {
+      const body: UpdateCartItemRequest = {
+        quantity,
+      }
+
+      const { data } = await api.patch<CartResponse>(
+        `/cart/items/${encodeURIComponent(itemId)}`,
+        body,
+        {
+          headers: cartHeaders(userId),
+        },
+      )
+
+      return data
+    },
+
+    onSuccess: (data) => {
+      queryClient.setQueryData(
+        cartKeys.forOwner(userId),
+        data,
+      )
+    },
+  })
+}
+
+export function useRemoveCartItem(userId: string | null) {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (itemId: string) => {
+      const { data } = await api.delete<CartResponse>(
+        `/cart/items/${encodeURIComponent(itemId)}`,
+        {
+          headers: cartHeaders(userId),
+        },
       )
 
       return data

@@ -173,6 +173,35 @@ e tente favoritar ou desfavoritar.
 
 O botão deve voltar ao estado anterior após a falha.
 
+## Carrinho
+
+A rota `/cart` consulta a API simulada usando Axios
+e TanStack Query.
+
+### Funcionalidades
+
+- Listagem dos NFTs adicionados.
+- Consulta dos detalhes do NFT por identificador.
+- Exibição da edição e do preço unitário em ETH.
+- Alteração da quantidade via PATCH /api/cart/items/:itemId.
+- Remoção via DELETE /api/cart/items/:itemId.
+- Respeito ao estoque e ao limite por edição.
+- Persistência após refresh por meio do MSW.
+- Estado vazio, skeleton de carregamento e erros da API.
+
+O carrinho do visitante usa `X-Guest-Cart-Id`, mantido
+no localStorage. Usuários autenticados utilizam o token
+de sessão.
+
+### Pendências
+
+- Mesclagem do carrinho visitante após login.
+- Contador no cabeçalho desktop/mobile.
+- Sincronização em tempo real com Socket.IO (Issue 11).
+
+Cupom, subtotal, desconto, taxa e total serão tratados
+na Issue 17. Checkout pertence à Issue 18.
+
 # React + TypeScript + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.

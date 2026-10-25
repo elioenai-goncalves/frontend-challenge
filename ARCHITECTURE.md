@@ -690,3 +690,40 @@ Limites da validação
 - O Figma ainda requer conferência visual fina da página.
 - A interface do carrinho será concluída na Issue 16.
 - O suporte a eventos de tempo real pertence às Issues 10 e 11.
+
+## Carrinho
+
+### Camada de dados
+
+- `useCart` consulta GET /cart.
+- `useAddCartItem` adiciona NFTs ao carrinho.
+- `useUpdateCartItem` altera a quantidade.
+- `useRemoveCartItem` exclui itens.
+- As mutations atualizam o cache do TanStack Query
+  com a resposta devolvida pelo servidor.
+- As query keys são separadas por usuário ou
+  identificador do visitante.
+
+### Apresentação
+
+- `CartPage` lê os itens da API de carrinho.
+- Os dados dos NFTs são consultados separadamente
+  em GET /nfts/:nftId, compartilhando o cache do detalhe.
+- A tela exibe edições, preços unitários, quantidades,
+  indisponibilidade, carregamento e erros.
+- As quantidades respeitam availableQuantity e
+  maxPerOrder.
+- O MSW revalida todas as alterações enviadas.
+
+### Precisão financeira
+
+- ETH permanece representado como string decimal.
+- A UI não calcula totais com Number.
+- O resumo financeiro completo usará a cotação
+  da API na Issue 17.
+
+### Pendências
+
+- Mescla de carrinho visitante/autenticado.
+- Contador de itens na navegação.
+- Reconciliação com eventos Socket.IO (Issue 11).
