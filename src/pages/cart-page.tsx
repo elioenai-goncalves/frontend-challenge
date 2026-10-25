@@ -10,6 +10,7 @@ import { LoadingSkeleton } from "@/components/ui/loading-skeleton";
 import { CartSummary } from "@/components/cart/cart-summary";
 
 import type { NftResponse } from "@/contracts/api";
+import { preferNewestNft } from "@/lib/realtime-snapshots";
 
 import {
   useCart,
@@ -64,7 +65,9 @@ export function CartPage() {
           { signal },
         );
 
-        return data;
+        return {
+          nft: preferNewestNft(data.nft),
+        };
       },
     })),
   });

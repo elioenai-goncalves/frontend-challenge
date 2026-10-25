@@ -1,129 +1,102 @@
-import { ws } from 'msw'
+import { ws } from "msw";
 
 import type {
   NftUpdatedEvent,
   Order,
   OrderUpdatedEvent,
-} from '@/contracts/api'
+} from "@/contracts/api";
 
-import { db } from './db'
-import { getScenario } from './scenario'
+import { db } from "./db";
+import { getScenario } from "./scenario";
 
-const protocol =
-  window.location.protocol === 'https:'
-    ? 'wss:'
-    : 'ws:'
+const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
 
-const socketUrl =
-  `${protocol}//${window.location.host}`
+const socketUrl = `${protocol}//${window.location.host}`;
 
-const socketLink = ws.link(socketUrl)
+const socketLink = ws.link(socketUrl);
 
 interface AuthenticatedConnection {
-  userId: string
-  token: string
+  userId: string;
+  token: string;
 }
 
-const readyClients = new Set<string>()
+const readyClients = new Set<string>();
 
-const authenticatedClients =
-  new Map<string, AuthenticatedConnection>()
+const authenticatedClients = new Map<string, AuthenticatedConnection>();
 
 function validSession(token: string) {
-  if (getScenario() === 'session-expired') {
-    return null
+  if (getScenario() === "session-expired") {
+    return null;
   }
 
-  const session = db().sessions.find(
-    (item) => item.token === token,
-  )
+  const session = db().sessions.find((item) => item.token === token);
 
-  if (
-    !session ||
-    Date.parse(session.expiresAt) <= Date.now()
-  ) {
-    return null
+  if (!session || Date.parse(session.expiresAt) <= Date.now()) {
+    return null;
   }
 
-  const userExists = db().users.some(
-    (user) => user.id === session.userId,
-  )
+  const userExists = db().users.some((user) => user.id === session.userId);
 
-  return userExists ? session : null
+  return userExists ? session : null;
 }
 
-function tokenFromConnectPacket(
-  packet: string,
-): string | null {
-  if (packet === '40') return null
+function tokenFromConnectPacket(packet: string): string | null {
+  if (packet === "40") return null;
 
   try {
-    const parsed: unknown = JSON.parse(
-      packet.slice(2),
-    )
+    const parsed: unknown = JSON.parse(packet.slice(2));
 
     if (
       parsed !== null &&
-      typeof parsed === 'object' &&
-      'token' in parsed &&
-      typeof parsed.token === 'string'
+      typeof parsed === "object" &&
+      "token" in parsed &&
+      typeof parsed.token === "string"
     ) {
-      return parsed.token
+      return parsed.token;
     }
   } catch {
     // Pacote de autenticação inválido.
   }
 
-  return null
+  return null;
 }
 
 function encodeEvent(
-  name: 'nft.updated' | 'order.updated',
+  name: "nft.updated" | "order.updated",
   payload: NftUpdatedEvent | OrderUpdatedEvent,
 ): string {
-  return `42${JSON.stringify([name, payload])}`
+  return `42${JSON.stringify([name, payload])}`;
 }
 
-export function emitNftUpdated(
-  event: NftUpdatedEvent,
-): void {
-  const message = encodeEvent(
-    'nft.updated',
-    event,
-  )
+export function emitNftUpdated(event: NftUpdatedEvent): void {
+  const message = encodeEvent("nft.updated", event);
 
   socketLink.clients.forEach((client) => {
     if (readyClients.has(client.id)) {
-      client.send(message)
+      client.send(message);
     }
-  })
+  });
 }
 
-export function emitOrderUpdated(
-  order: Order,
-): void {
-  const eventId = crypto.randomUUID()
+export function emitOrderUpdated(order: Order): void {
+  const eventId = crypto.randomUUID();
 
   socketLink.clients.forEach((client) => {
-    if (!readyClients.has(client.id)) return
+    if (!readyClients.has(client.id)) return;
 
-    const connection =
-      authenticatedClients.get(client.id)
+    const connection = authenticatedClients.get(client.id);
 
-    if (!connection) return
+    if (!connection) return;
 
     if (connection.userId !== order.userId) {
-      return
+      return;
     }
 
-    const session = validSession(connection.token)
+    const session = validSession(connection.token);
 
-    if (
-      !session ||
-      session.userId !== order.userId
-    ) {
-      authenticatedClients.delete(client.id)
-      return
+    if (!session || session.userId !== order.userId) {
+      authenticatedClients.delete(client.id);
+      return;
     }
 
     const event: OrderUpdatedEvent = {
@@ -136,109 +109,100 @@ export function emitOrderUpdated(
 
       userId: order.userId,
       order: structuredClone(order),
-    }
+    };
 
-    client.send(
-      encodeEvent('order.updated', event),
-    )
-  })
+    client.send(encodeEvent("order.updated", event));
+  });
 }
 
 export const realtimeHandlers = [
-  socketLink.addEventListener(
-    'connection',
-    ({ client }) => {
-      console.info(
-        '[realtime:mock] WebSocket interceptado:',
-        client.url.toString(),
-      )
+  socketLink.addEventListener("connection", ({ client }) => {
+    console.info(
+      "[realtime:mock] WebSocket interceptado:",
+      client.url.toString(),
+    );
 
-      client.addEventListener(
-        'message',
-        (messageEvent) => {
-          const packet = messageEvent.data
+    client.addEventListener("message", (messageEvent) => {
+      const packet = messageEvent.data;
 
-          if (typeof packet !== 'string') return
+      if (typeof packet !== "string") return;
 
-          console.info(
-            '[realtime:mock] Tipo de pacote:',
-            packet.slice(0, 2),
-          )
+      console.info("[realtime:mock] Tipo de pacote:", packet.slice(0, 2));
 
-          if (
-            packet === '40' ||
-            packet.startsWith('40{')
-          ) {
-            if (readyClients.has(client.id)) {
-              return
-            }
+      if (packet === "40" || packet.startsWith("40{")) {
+        if (readyClients.has(client.id)) {
+          return;
+        }
 
-            const token =
-              tokenFromConnectPacket(packet)
+        const token = tokenFromConnectPacket(packet);
 
-            if (token) {
-              const session = validSession(token)
+        if (token) {
+          const session = validSession(token);
 
-              if (!session) {
-                client.send(
-                  `44${JSON.stringify({
-                    message: 'Sessão inválida ou expirada.',
-                  })}`,
-                )
-                return
-              }
-
-              authenticatedClients.set(
-                client.id,
-                {
-                  userId: session.userId,
-                  token,
-                },
-              )
-            }
-
+          if (!session) {
             client.send(
-              `40${JSON.stringify({
-                sid: client.id,
+              `44${JSON.stringify({
+                message: "Sessão inválida ou expirada.",
               })}`,
-            )
-
-            readyClients.add(client.id)
-
-            console.info(
-              '[realtime:mock] Socket.IO conectado:',
-              client.id,
-              token ? '(autenticado)' : '(visitante)',
-            )
-
-            return
+            );
+            return;
           }
 
-          if (packet === '3') return
-        },
-      )
+          authenticatedClients.set(client.id, {
+            userId: session.userId,
+            token,
+          });
+        }
 
-      client.addEventListener('close', () => {
-        readyClients.delete(client.id)
-        authenticatedClients.delete(client.id)
+        client.send(
+          `40${JSON.stringify({
+            sid: client.id,
+          })}`,
+        );
+
+        readyClients.add(client.id);
 
         console.info(
-          '[realtime:mock] Socket.IO desconectado:',
+          "[realtime:mock] Socket.IO conectado:",
           client.id,
-        )
-      })
+          token ? "(autenticado)" : "(visitante)",
+        );
 
-      queueMicrotask(() => {
-        client.send(
-          `0${JSON.stringify({
-            sid: client.id,
-            upgrades: [],
-            pingInterval: 2_000_000_000,
-            pingTimeout: 100_000_000,
-            maxPayload: 1_000_000,
-          })}`,
-        )
-      })
-    },
-  ),
-]
+        return;
+      }
+
+      if (packet === "3") return;
+    });
+
+    client.addEventListener("close", () => {
+      readyClients.delete(client.id);
+      authenticatedClients.delete(client.id);
+
+      console.info("[realtime:mock] Socket.IO desconectado:", client.id);
+    });
+
+    queueMicrotask(() => {
+      client.send(
+        `0${JSON.stringify({
+          sid: client.id,
+          upgrades: [],
+          pingInterval: 2_000_000_000,
+          pingTimeout: 100_000_000,
+          maxPayload: 1_000_000,
+        })}`,
+      );
+    });
+  }),
+];
+
+export function disconnectMockRealtimeClients(): number {
+  const clients = [...socketLink.clients];
+
+  for (const client of clients) {
+    client.close(4001, "Interrupção simulada para teste");
+  }
+
+  console.info("[realtime:mock] Conexões interrompidas:", clients.length);
+
+  return clients.length;
+}

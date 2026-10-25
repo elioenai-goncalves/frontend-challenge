@@ -508,6 +508,38 @@ A verificação de respostas REST fora de ordem,
 reconexão e proteção adicional contra regressões
 será concluída na Etapa 2.
 
+### Concorrência e reconciliação
+
+A aplicação mantém em memória a versão mais recente
+conhecida de cada NFT e pedido.
+
+As respostas REST e os eventos Socket.IO compartilham
+a mesma proteção contra versões antigas.
+
+- Eventos duplicados são descartados.
+- Eventos anteriores à versão conhecida são ignorados.
+- Respostas REST atrasadas não substituem dados mais recentes.
+- Pedidos confirmados e recusados são terminais.
+- A queda do WebSocket não impede o acesso à API REST.
+- Após reconexão, consultas ativas são revalidadas.
+- A troca de sessão descarta snapshots e caches privados.
+
+### Diagnóstico
+
+O MSW permite reproduzir eventos publicados:
+
+window.mocks.replayNftEvent(eventId)
+
+Também permite interromper conexões WebSocket:
+
+window.mocks.disconnectRealtimeClients()
+
+Ambos os controles existem apenas na infraestrutura
+de mocks e não atualizam diretamente os componentes React.
+
+Os testes automatizados de concorrência e reconexão
+serão adicionados à suíte Playwright da Issue 23.
+
 # React + TypeScript + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.

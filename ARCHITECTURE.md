@@ -1022,3 +1022,46 @@ de sessão e na desmontagem do componente.
 O carregamento dinâmico do socket.io-client evita
 a captura do WebSocket nativo antes da inicialização
 da interceptação do MSW.
+
+### Consistência entre REST e Socket.IO
+
+`realtime-snapshots.ts` mantém a versão mais recente
+conhecida por recurso.
+
+Os hooks REST reconciliam os dados recebidos antes de
+devolvê-los ao TanStack Query.
+
+Os eventos Socket.IO também passam pelo controle
+de versão antes de modificar o cache.
+
+Quando um evento de NFT chega:
+
+1. Verifica identidade e versão.
+2. Registra a versão mais recente.
+3. Cancela consultas concorrentes.
+4. Atualiza os recursos existentes no cache.
+5. Invalida consultas ativas para reconciliar filtros,
+   ordenação e paginação.
+
+Respostas REST com versões anteriores não substituem
+snapshots mais recentes.
+
+Quando a conexão é restabelecida, os recursos ativos
+são reconciliados com a API REST.
+
+Pedidos são isolados por usuário, e estados terminais
+não podem regredir.
+
+Logout e troca de sessão encerram sockets, removem
+listeners, limpam snapshots e descartam o cache privado.
+
+### Limitações
+
+Os snapshots em memória não substituem a persistência
+do servidor simulado.
+
+A consistência de listas filtradas, ordenação e
+paginação depende também da reconciliação REST.
+
+Cenários de cotação desatualizada com avisos acessíveis
+e bloqueio da confirmação pertencem à Issue 20.

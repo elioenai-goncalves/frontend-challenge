@@ -12,7 +12,7 @@ import {
 import type { NftUpdatedEvent } from "@/contracts/api";
 import type { RealtimeSocket } from "@/lib/realtime-client";
 import { toNft } from "./mappers";
-import { emitNftUpdated } from "./socket-io";
+import { disconnectMockRealtimeClients, emitNftUpdated } from "./socket-io";
 import { getApiAccessToken } from "@/lib/api-client";
 import { onSessionEnd } from "@/lib/session";
 
@@ -24,6 +24,8 @@ interface UpdateNftEditionInput {
 }
 
 let probeSocket: RealtimeSocket | null = null;
+
+const publishedNftEvents = new Map<string, NftUpdatedEvent>();
 
 function updateNftEdition(input: UpdateNftEditionInput): NftUpdatedEvent {
   const nft = db().nfts.find((item) => item.id === input.nftId);
@@ -91,6 +93,8 @@ function updateNftEdition(input: UpdateNftEditionInput): NftUpdatedEvent {
     nft: toNft(nft),
   };
 
+  publishedNftEvents.set(event.eventId, event);
+
   emitNftUpdated(event);
 
   console.info("[realtime:mock] nft.updated emitido:", event);
@@ -107,6 +111,9 @@ declare global {
       probeRealtime: () => Promise<void>;
       stopRealtimeProbe: () => void;
       updateNftEdition: (input: UpdateNftEditionInput) => NftUpdatedEvent;
+
+      disconnectRealtimeClients: () => number;
+      replayNftEvent: (eventId: string) => void;
     };
   }
 }
@@ -116,6 +123,7 @@ export async function startMocks(): Promise<void> {
   window.mocks = {
     reset: async (reload = true) => {
       clearScenario();
+      publishedNftEvents.clear();
       await resetMockDb();
       if (reload) window.location.reload();
     },
@@ -168,6 +176,26 @@ export async function startMocks(): Promise<void> {
     },
 
     updateNftEdition,
+
+    disconnectRealtimeClients: disconnectMockRealtimeClients,
+
+    replayNftEvent: (eventId) => {
+      const event = publishedNftEvents.get(eventId);
+
+      if (!event) {
+        throw new Error(
+          "Evento não encontrado. Crie uma atualização primeiro.",
+        );
+      }
+
+      emitNftUpdated(event);
+
+      console.info(
+        "[realtime:mock] Evento reproduzido:",
+        event.eventId,
+        event.version,
+      );
+    },
   };
   onSessionEnd(() => {
     probeSocket?.disconnect();

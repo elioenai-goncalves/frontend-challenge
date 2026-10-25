@@ -4,6 +4,7 @@ import type { SessionResponse, User } from '@/contracts/api'
 import { setApiAccessToken } from '@/lib/api-client'
 import { fetchSession, logoutRequest } from '@/lib/auth-api'
 import { queryClient } from '@/lib/query-client'
+import { clearRealtimeSnapshots } from '@/lib/realtime-snapshots'
 
 const STORAGE_KEY = 'frontend-challenge:session'
 
@@ -75,6 +76,7 @@ export function onSessionEnd(callback: () => void): () => void {
 
 function resetPrivateData(): void {
   endCallbacks.forEach((callback) => callback())
+  clearRealtimeSnapshots()
   queryClient.clear()
 }
 
