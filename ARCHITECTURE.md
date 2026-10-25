@@ -879,7 +879,45 @@ Resposta:
 - O MSW garante idempotência, inclusive após a
   confirmação do pedido e remoção dos itens comprados.
 
-### Limitação
+## Pedidos e confirmação
 
-A página de confirmação completa, com recibo imutável
-e acesso por identificador, será implementada na Issue 19.
+### Consulta de pedidos
+
+- `useOrder` consulta GET /orders/:orderId.
+- A query key contém o ID do usuário e do pedido.
+- O acesso à rota exige autenticação.
+- O MSW consulta apenas pedidos pertencentes ao usuário.
+- Pedidos inexistentes apresentam estado específico.
+- Erros de rede permitem nova tentativa.
+
+### Fluxo após o pagamento
+
+- O checkout somente navega para confirmação quando
+  POST /orders retorna um pedido com status confirmed.
+- A recuperação da Issue 18 usa o mesmo redirecionamento.
+- A URL de confirmação contém o ID persistido do pedido.
+- A página obtém o pedido pela API após navegação ou F5.
+- Pedidos rejeitados ou pendentes não apresentam recibo
+  de compra confirmada.
+
+### Snapshot do pedido
+
+- O MSW grava `order.receipt` como cópia da cotação.
+- A confirmação exibe os itens e valores de `order.receipt`.
+- Mudanças posteriores no catálogo não modificam o recibo.
+- O frontend não recalcula os valores financeiros.
+
+### Atualização do carrinho
+
+- O MSW valida cotação, estoque e versão do carrinho.
+- Após confirmação, subtrai as quantidades compradas.
+- Itens com quantidade resultante igual a zero são removidos.
+- Itens não comprados são preservados.
+- Em pagamento recusado, o carrinho não é alterado.
+- A mutation invalida o cache do carrinho após confirmação.
+
+### Limitações
+
+- As transações blockchain são simuladas.
+- A atualização em tempo real de pedidos pertence
+  às Issues 11 e 20.

@@ -5,6 +5,7 @@ import {
 export { NftDetailsPage } from './nft-details-page'
 export { CartPage } from './cart-page'
 export { CheckoutPage } from './checkout-page'
+export { OrderConfirmationPage } from './order-confirmation-page'
 interface PlaceholderPageProps {
   title: string
   description: string
@@ -22,15 +23,6 @@ function PlaceholderPage({
         {description}
       </p>
     </section>
-  )
-}
-
-export function OrderConfirmationPage() {
-  return (
-    <PlaceholderPage
-      title="Confirmação do pedido"
-      description="O recibo será implementado na Issue 19."
-    />
   )
 }
 

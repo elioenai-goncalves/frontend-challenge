@@ -347,7 +347,59 @@ tenha confirmado o pedido antes de perder a resposta.
 O mecanismo de idempotência impede a criação de pedidos
 duplicados quando a mesma chave e o mesmo corpo são reenviados.
 
-A tela completa do recibo pertence à Issue 19.
+## Confirmação e recibo
+
+A rota `/orders/:orderId/confirmation` apresenta o
+resultado de um pedido persistido na API simulada.
+
+### Funcionalidades
+
+- Consulta autenticada via GET /api/orders/:orderId.
+- Navegação após pagamento confirmado.
+- Navegação após recuperação de pagamento com timeout.
+- Recibo disponível novamente após refresh.
+- Estado de carregamento com skeleton.
+- Erro de consulta com nova tentativa.
+- Estado específico para pedido inexistente.
+- Pedidos recusados ou pendentes não exibem sucesso.
+- Isolamento de pedidos por usuário autenticado.
+- Layout responsivo para desktop e mobile.
+
+### Recibo
+
+O recibo apresenta:
+
+- Identificador do pedido.
+- Data e status.
+- Referência da transação.
+- Rede e carteira utilizada.
+- Dados do colecionador.
+- NFTs, edições e quantidades compradas.
+- Preços unitários e totais dos itens.
+- Subtotal, desconto, taxa de rede e total.
+- Cupom aplicado, quando existir.
+
+### Snapshot financeiro
+
+Todos os valores financeiros são exibidos diretamente
+de `order.receipt`, gravado no momento da compra.
+
+A página não reconstrói o recibo consultando os preços
+atuais do catálogo.
+
+Os valores ETH permanecem representados como strings
+decimais, sem cálculos com Number no frontend.
+
+### Carrinho
+
+Após uma confirmação, o MSW desconta somente as
+quantidades presentes na cotação comprada.
+
+Pagamentos recusados não removem itens.
+
+A versão do carrinho é validada antes do pedido,
+evitando executar cotações antigas sobre um carrinho
+modificado.
 
 # React + TypeScript + Vite
 

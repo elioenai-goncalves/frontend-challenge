@@ -1,6 +1,6 @@
 import { useRef, useState, type FormEvent } from "react";
 import { AxiosError } from "axios";
-import { Link, useSearch } from "@tanstack/react-router";
+import { Link, useNavigate, useSearch } from "@tanstack/react-router";
 
 import { EmptyState } from "@/components/empty-state";
 import { ErrorState } from "@/components/error-state";
@@ -739,12 +739,15 @@ function CheckoutContent({
 
 export function CheckoutPage() {
   const search = useSearch({ from: "/checkout" });
+
+  const navigate = useNavigate({
+    from: "/checkout",
+  });
+
   const session = useSession();
   const userId = session.user?.id ?? null;
 
   const cart = useCart(userId);
-
-  const [confirmedOrder, setConfirmedOrder] = useState<Order | null>(null);
 
   const [initialPendingOrder, setInitialPendingOrder] = useState(() => {
     if (!userId) return null;
@@ -759,56 +762,22 @@ export function CheckoutPage() {
     message: string;
   } | null>(null);
 
-  if (session.status !== "authenticated") {
-    return <p role="status">Autenticação necessária para continuar.</p>;
+  function handleConfirmed(order: Order) {
+    if (getSession().user?.id !== order.userId) {
+      return;
+    }
+
+    void navigate({
+      to: "/orders/$orderId/confirmation",
+      params: {
+        orderId: order.id,
+      },
+      replace: true,
+    });
   }
 
-  if (
-    session.status === "authenticated" &&
-    confirmedOrder?.userId === session.user.id
-  ) {
-    return (
-      <section className="mx-auto max-w-2xl space-y-5">
-        <h1 className="text-3xl font-bold text-primary">
-          Pagamento confirmado!
-        </h1>
-
-        <p>A API simulada confirmou sua compra.</p>
-
-        <div className="rounded-lg border border-border bg-card p-6">
-          <p className="text-sm text-text-secondary">Pedido</p>
-
-          <p className="mt-1 break-all font-semibold">{confirmedOrder.id}</p>
-
-          <p className="mt-5 text-sm text-text-secondary">Valor confirmado</p>
-
-          <p className="mt-1 text-xl font-bold text-primary">
-            {confirmedOrder.receipt.totalEth} ETH
-          </p>
-
-          <p className="mt-5 text-sm text-text-secondary">
-            Referência da transação
-          </p>
-
-          <p className="mt-1 break-all text-sm">
-            {confirmedOrder.transactionReference}
-          </p>
-        </div>
-
-        <p className="text-sm text-text-secondary">
-          O recibo completo e a página de confirmação serão implementados na
-          Issue #19.
-        </p>
-
-        <Link
-          to="/"
-          search={{}}
-          className="inline-block text-primary underline underline-offset-4"
-        >
-          Voltar ao catálogo
-        </Link>
-      </section>
-    );
+  if (session.status !== "authenticated") {
+    return <p role="status">Autenticação necessária para continuar.</p>;
   }
 
   if (session.status === "authenticated" && recoveryOutcome) {
@@ -866,10 +835,7 @@ export function CheckoutPage() {
           key={initialPendingOrder.attempt.key}
           userId={session.user.id}
           attempt={initialPendingOrder.attempt}
-          onConfirmed={(order) => {
-            setInitialPendingOrder(null);
-            setConfirmedOrder(order);
-          }}
+          onConfirmed={handleConfirmed}
           onFinished={(result, message) => {
             setInitialPendingOrder(null);
             setRecoveryOutcome({
@@ -930,7 +896,7 @@ export function CheckoutPage() {
         userEmail={session.user.email}
         initialNetwork={search.network}
         couponCode={search.couponCode ?? null}
-        onConfirmed={setConfirmedOrder}
+        onConfirmed={handleConfirmed}
       />
     </section>
   );
