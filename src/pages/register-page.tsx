@@ -2,7 +2,10 @@ import { useRef, useState, type FormEvent } from 'react'
 import { Link, useRouter, useSearch } from '@tanstack/react-router'
 import { useMutation } from '@tanstack/react-query'
 
+import { AuthDialog } from '@/components/auth/auth-dialog'
+import { SocialBlock } from '@/components/auth/social-block'
 import { Button } from '@/components/ui/button'
+import { PasswordField } from '@/components/ui/password-field'
 import { TextField } from '@/components/ui/text-field'
 import { getApiErrorMessage } from '@/lib/api-client'
 import { getFieldErrors } from '@/lib/api-errors'
@@ -15,9 +18,15 @@ export function RegisterPage() {
   const search = useSearch({ from: '/register' })
   const formRef = useRef<HTMLFormElement>(null)
 
-  const [values, setValues] = useState({ name: '', email: '', password: '' })
+  const [values, setValues] = useState({ name: '', email: '', password: '', confirmPassword: '' })
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [formError, setFormError] = useState<string | null>(null)
+
+  function focusFirstInvalid() {
+    requestAnimationFrame(() => {
+      formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus()
+    })
+  }
 
   const mutation = useMutation({
     mutationFn: registerRequest,
@@ -29,9 +38,7 @@ export function RegisterPage() {
       const fieldErrors = getFieldErrors(error)
       setErrors(fieldErrors)
       setFormError(Object.keys(fieldErrors).length > 0 ? null : getApiErrorMessage(error))
-      requestAnimationFrame(() => {
-        formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus()
-      })
+      focusFirstInvalid()
     },
   })
 
@@ -43,9 +50,7 @@ export function RegisterPage() {
     setFormError(null)
 
     if (Object.keys(nextErrors).length > 0) {
-      requestAnimationFrame(() => {
-        formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus()
-      })
+      focusFirstInvalid()
       return
     }
 
@@ -57,18 +62,19 @@ export function RegisterPage() {
   }
 
   return (
-    <section className="mx-auto w-full max-w-md rounded-lg border border-border bg-card p-6">
-      <h1 className="text-2xl font-bold">Criar conta</h1>
-
-      <p className="mt-2 text-sm text-text-secondary">
-        Cadastre-se para começar a colecionar.
-      </p>
-
-      <form ref={formRef} onSubmit={handleSubmit} noValidate className="mt-6 flex flex-col gap-4">
+    <AuthDialog
+      mode="register"
+      redirect={search.redirect}
+      title="Criar perfil de colecionador"
+      description="Crie seu perfil de colecionador e conecte uma carteira quando quiser."
+    >
+      <form ref={formRef} onSubmit={handleSubmit} noValidate className="flex flex-col gap-3">
         <TextField
-          label="Nome"
+          label="Nome de usuário"
+          hideLabel
           name="name"
-          autoComplete="name"
+          autoComplete="username"
+          placeholder="Nome de usuário"
           value={values.name}
           onChange={(event) => setValues({ ...values, name: event.target.value })}
           error={errors.name}
@@ -76,22 +82,36 @@ export function RegisterPage() {
 
         <TextField
           label="E-mail"
+          hideLabel
           name="email"
           type="email"
           autoComplete="email"
+          placeholder="Digite seu e-mail"
           value={values.email}
           onChange={(event) => setValues({ ...values, email: event.target.value })}
           error={errors.email}
         />
 
-        <TextField
+        <PasswordField
           label="Senha"
+          hideLabel
           name="password"
-          type="password"
           autoComplete="new-password"
+          placeholder="Senha"
           value={values.password}
           onChange={(event) => setValues({ ...values, password: event.target.value })}
           error={errors.password}
+        />
+
+        <PasswordField
+          label="Confirmar senha"
+          hideLabel
+          name="confirmPassword"
+          autoComplete="new-password"
+          placeholder="Confirmar senha"
+          value={values.confirmPassword}
+          onChange={(event) => setValues({ ...values, confirmPassword: event.target.value })}
+          error={errors.confirmPassword}
         />
 
         {formError && (
@@ -100,21 +120,35 @@ export function RegisterPage() {
           </p>
         )}
 
-        <Button type="submit" disabled={mutation.isPending} aria-busy={mutation.isPending}>
-          {mutation.isPending ? 'Criando conta…' : 'Criar conta'}
+        <Button
+          type="submit"
+          disabled={mutation.isPending}
+          aria-busy={mutation.isPending}
+          className="mt-3 h-11 w-full"
+        >
+          {mutation.isPending ? (
+            'Criando…'
+          ) : (
+            <>
+              <span className="lg:hidden">Criar perfil</span>
+              <span className="hidden lg:inline">Criar conta</span>
+            </>
+          )}
         </Button>
       </form>
 
-      <p className="mt-6 text-sm text-text-secondary">
-        Já tem conta?{' '}
+      <SocialBlock />
+
+      <p className="text-center text-sm lg:hidden">
+        Já tem uma conta?{' '}
         <Link
           to="/login"
           search={{ redirect: search.redirect }}
           className="text-primary underline underline-offset-4"
         >
-          Entrar
+          Entre
         </Link>
       </p>
-    </section>
+    </AuthDialog>
   )
 }

@@ -306,6 +306,22 @@ resourceId corresponde ao id do pedido, e version à sua versão.
 - Os formulários de login e cadastro seguem os tokens do projeto e têm
   aparência provisória até a conferência com os frames do Figma.
 
+### Login e cadastro (layout)
+
+- Desktop: modal nativo (`<dialog>`) de 500 px (login: 600 px de altura mínima;
+  cadastro: 656 px), fundo Surface Card, faixa laranja na borda inferior.
+  Mobile: tela cheia no fundo da página, com padding 80/28/24/28 e espaço de 40.
+- Abas "Entrar" e "Criar conta" são links entre `/login` e `/register` e
+  preservam o parâmetro `redirect`.
+- Os campos mostram apenas o placeholder do Figma; o rótulo existe para
+  tecnologias assistivas (`sr-only`).
+- "Esqueceu a senha?" e os botões Google e Facebook aparecem desabilitados,
+  por estarem fora do escopo.
+- Aproximações: recuo lateral, alturas de campo e botão do desktop foram
+  estimados a partir de captura; os ícones de Google e Facebook são letras
+  provisórias; o fundo do modal no desktop ainda não exibe o catálogo
+  (Issue 13).
+
 ### Verificações manuais
 
 - Navegação pelas nove rotas e página 404.

@@ -2,7 +2,10 @@ import { useRef, useState, type FormEvent } from 'react'
 import { Link, useRouter, useSearch } from '@tanstack/react-router'
 import { useMutation } from '@tanstack/react-query'
 
+import { AuthDialog } from '@/components/auth/auth-dialog'
+import { SocialBlock } from '@/components/auth/social-block'
 import { Button } from '@/components/ui/button'
+import { PasswordField } from '@/components/ui/password-field'
 import { TextField } from '@/components/ui/text-field'
 import { getApiErrorMessage } from '@/lib/api-client'
 import { getFieldErrors } from '@/lib/api-errors'
@@ -19,6 +22,12 @@ export function LoginPage() {
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [formError, setFormError] = useState<string | null>(null)
 
+  function focusFirstInvalid() {
+    requestAnimationFrame(() => {
+      formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus()
+    })
+  }
+
   const mutation = useMutation({
     mutationFn: loginRequest,
     onSuccess: (data) => {
@@ -29,14 +38,9 @@ export function LoginPage() {
       const fieldErrors = getFieldErrors(error)
       setErrors(fieldErrors)
       setFormError(Object.keys(fieldErrors).length > 0 ? null : getApiErrorMessage(error))
+      focusFirstInvalid()
     },
   })
-
-  function focusFirstInvalid() {
-    requestAnimationFrame(() => {
-      formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus()
-    })
-  }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -54,33 +58,43 @@ export function LoginPage() {
   }
 
   return (
-    <section className="mx-auto w-full max-w-md rounded-lg border border-border bg-card p-6">
-      <h1 className="text-2xl font-bold">Entrar</h1>
-
-      <p className="mt-2 text-sm text-text-secondary">
-        Acesse sua conta para comprar, favoritar e gerenciar suas carteiras.
-      </p>
-
-      <form ref={formRef} onSubmit={handleSubmit} noValidate className="mt-6 flex flex-col gap-4">
+    <AuthDialog
+      mode="login"
+      redirect={search.redirect}
+      title="Entrar"
+      description="Entre para gerenciar sua carteira, coleção e perfil de criador."
+    >
+      <form ref={formRef} onSubmit={handleSubmit} noValidate className="flex flex-col gap-3">
         <TextField
           label="E-mail"
+          hideLabel
           name="email"
           type="email"
           autoComplete="email"
+          placeholder="contato@email.com"
           value={values.email}
           onChange={(event) => setValues({ ...values, email: event.target.value })}
           error={errors.email}
         />
 
-        <TextField
+        <PasswordField
           label="Senha"
+          hideLabel
           name="password"
-          type="password"
           autoComplete="current-password"
+          placeholder="Senha"
           value={values.password}
           onChange={(event) => setValues({ ...values, password: event.target.value })}
           error={errors.password}
         />
+
+        <span
+          aria-disabled="true"
+          title="Recuperação de senha indisponível nesta demonstração"
+          className="cursor-not-allowed self-end text-sm text-primary/60"
+        >
+          Esqueceu a senha?
+        </span>
 
         {formError && (
           <p role="alert" className="text-sm text-destructive">
@@ -88,21 +102,28 @@ export function LoginPage() {
           </p>
         )}
 
-        <Button type="submit" disabled={mutation.isPending} aria-busy={mutation.isPending}>
+        <Button
+          type="submit"
+          disabled={mutation.isPending}
+          aria-busy={mutation.isPending}
+          className="mt-3 h-11 w-full"
+        >
           {mutation.isPending ? 'Entrando…' : 'Entrar'}
         </Button>
       </form>
 
-      <p className="mt-6 text-sm text-text-secondary">
-        Ainda não tem conta?{' '}
+      <SocialBlock />
+
+      <p className="text-center text-sm lg:hidden">
+        Novo na Kurio?{' '}
         <Link
           to="/register"
           search={{ redirect: search.redirect }}
           className="text-primary underline underline-offset-4"
         >
-          Cadastre-se
+          Crie uma conta
         </Link>
       </p>
-    </section>
+    </AuthDialog>
   )
 }
