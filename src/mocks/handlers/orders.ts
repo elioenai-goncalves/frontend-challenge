@@ -5,6 +5,9 @@ import { commit, db } from "../db";
 import { applyOnce, getScenario } from "../scenario";
 import { authenticate, errorResponse, readJson } from "../utils";
 import { EMAIL_PATTERN } from "./auth";
+import { emitNftUpdated, emitOrderUpdated } from "../socket-io";
+
+import { toNft } from "../mappers";
 
 const MAX_KEY_LENGTH = 128;
 
@@ -165,6 +168,7 @@ export const orderHandlers = [
       db().orders.push(refused);
       remember(auth.user.id, key, fingerprint, refused.id);
       commit();
+      emitOrderUpdated(refused);
       const refusedResponse: OrderResponse = { order: refused };
       return HttpResponse.json(refusedResponse, { status: 201 });
     }
@@ -211,6 +215,28 @@ export const orderHandlers = [
 
     cart.version += 1;
     commit();
+
+    const updatedNftIds = new Set(
+      quote.items.map((item) => item.nftId),
+    );
+
+    for (const nftId of updatedNftIds) {
+      const updatedNft = db().nfts.find(
+        (item) => item.id === nftId,
+      );
+
+      if (!updatedNft) continue;
+
+      emitNftUpdated({
+        eventId: crypto.randomUUID(),
+        resourceId: updatedNft.id,
+        version: updatedNft.version,
+        occurredAt: new Date().toISOString(),
+        nft: toNft(updatedNft),
+      });
+    }
+
+    emitOrderUpdated(order);
 
     if (getScenario() === "order-timeout" && applyOnce("order-timeout")) {
       await delay(3000);

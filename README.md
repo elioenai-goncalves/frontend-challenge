@@ -401,7 +401,7 @@ A versão do carrinho é validada antes do pedido,
 evitando executar cotações antigas sobre um carrinho
 modificado.
 
-## Socket.IO com MSW — Issue 10 (Etapa 2)
+## Socket.IO com MSW
 
 A aplicação utiliza socket.io-client para estabelecer
 uma conexão WebSocket com o servidor simulado pelo MSW.
@@ -446,13 +446,30 @@ versão e publica nft.updated pelo WebSocket.
 O cliente deve receber o mesmo recurso que será
 devolvido em GET /api/nfts/:nftId.
 
-### Próxima etapa
+### Eventos de tempo real
 
-Integrar a publicação de eventos de pedidos com
-autenticação e isolamento entre sessões.
+O servidor simulado publica:
 
-A atualização das telas e do cache será implementada
-na Issue 11.
+- `nft.updated`: mudanças de preço e estoque, inclusive
+  após compras confirmadas.
+- `order.updated`: criação de pedidos confirmados
+  ou recusados.
+
+Os eventos são emitidos após persistência das alterações
+no banco simulado.
+
+### Segurança e sessões
+
+- Visitantes recebem somente eventos públicos de NFT.
+- Conexões autenticadas enviam o token no handshake.
+- O token não é registrado no Console.
+- Eventos de pedido são filtrados pelo usuário.
+- O mock revalida a sessão antes de enviar eventos privados.
+- O socket de diagnóstico é encerrado em logout ou
+  troca de sessão.
+
+A interface ainda não consome os eventos para atualizar
+o TanStack Query. Essa integração pertence à Issue 11.
 
 # React + TypeScript + Vite
 

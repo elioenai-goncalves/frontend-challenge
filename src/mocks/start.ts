@@ -13,6 +13,8 @@ import type { NftUpdatedEvent } from "@/contracts/api";
 import type { RealtimeSocket } from "@/lib/realtime-client";
 import { toNft } from "./mappers";
 import { emitNftUpdated } from "./socket-io";
+import { getApiAccessToken } from "@/lib/api-client";
+import { onSessionEnd } from "@/lib/session";
 
 interface UpdateNftEditionInput {
   nftId: string;
@@ -133,7 +135,7 @@ export async function startMocks(): Promise<void> {
 
       probeSocket?.disconnect();
 
-      const socket = createRealtimeSocket();
+      const socket = createRealtimeSocket(getApiAccessToken());
 
       probeSocket = socket;
 
@@ -167,5 +169,9 @@ export async function startMocks(): Promise<void> {
 
     updateNftEdition,
   };
+  onSessionEnd(() => {
+    probeSocket?.disconnect();
+    probeSocket = null;
+  });
   await worker.start({ onUnhandledFrame: "bypass" });
 }

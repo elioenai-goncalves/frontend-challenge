@@ -957,8 +957,29 @@ dados de negócio.
   o recebimento de eventos.
 - A reconciliação com TanStack Query será feita na #11.
 
-### Pendências
+### Publicação e isolamento dos eventos
 
-- Autenticar e isolar eventos order.updated.
-- Integrar os eventos às operações de pedido.
-- Controlar duplicatas, versões e reconexão na #11.
+A emissão ocorre na camada de mocks, após a persistência
+dos dados.
+
+`nft.updated` é público e transporta o NFT atualizado,
+identificador do evento, identificador do recurso, versão
+e instante da alteração.
+
+`order.updated` é privado. O mock valida a sessão
+Socket.IO e verifica a titularidade do pedido antes
+de enviar o evento.
+
+O transporte utiliza Socket.IO sobre WebSocket,
+com handshake Engine.IO simulado pelo MSW 3.
+
+A implementação local suporta eventos textuais no
+namespace padrão. Não implementa polling, mensagens
+binárias ou funcionalidades completas de um servidor
+Socket.IO de produção.
+
+Na Issue 11, o cliente implementará:
+- atualização do cache a partir dos eventos;
+- descarte de eventos duplicados e antigos;
+- reconciliação REST após reconexão;
+- gerenciamento do ciclo de vida das conexões.
