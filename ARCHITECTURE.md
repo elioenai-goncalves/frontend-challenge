@@ -57,7 +57,8 @@ O build Vite é estático (`dist/`), com hospedagem na Vercel. As rotas da SPA e
 | `src/mocks/socket-io.ts` | Handshake, envio e isolamento dos eventos |
 | `src/mocks/db.ts` / `seed.ts` | Estado persistido e dados fictícios |
 | `src/mocks/scenario.ts` | Seleção dos cenários determinísticos |
-| `src/pages/` / `src/components/` | Páginas e componentes visuais |
+- `src/pages/` / `src/components/` | Páginas e componentes visuais |
+| `tests/e2e/` / `playwright.config.ts` | Testes E2E e configuração desktop/mobile |
 
 ## 4. Rotas
 
@@ -94,8 +95,8 @@ A API simulada usa prefixo `/api`, JSON para requisições e respostas e 204 sem
 
 ### Regras de domínio e validação
 
-- Filtros do catálogo combinam busca, categorias, coleções, redes, preço, ordenação e paginação. Arrays são enviados por parâmetros repetidos; páginas começam em 1, com tamanho padrão 12 e máximo 48.
-- O preço de referência na listagem é o menor preço de edição disponível. Sem estoque, o NFT não satisfaz filtros de preço e aparece ao final da ordenação por preço.
+- Filtros do catálogo combinam busca, categorias, coleções, redes, preço, ordenação e paginação. Arrays são enviados por parâmetros repetidos; páginas começam em 1, com tamanho padrão 12 e máximo 48. As abas são um estado de apresentação/consulta: **Todos** usa a listagem normal; **Novos lançamentos** prioriza ordenação recente; **Em alta** utiliza `featured: true` no pedido de listagem, sem gerar estatísticas falsas de popularidade.
+- O preço de referência na listagem é o menor preço de edição disponível. Sem estoque, o NFT não satisfaz filtros de preço e aparece ao final da ordenação por preço. O slider de mínimo/máximo converte a seleção em filtros REST reais `minPriceEth` / `maxPriceEth`.
 - ETH trafega como **string decimal**; o mock calcula com `BigInt` usando 18 casas. Não há cálculo financeiro com `Number` no frontend.
 - Quantidades precisam ser inteiras positivas e respeitar `availableQuantity` e `maxPerOrder`.
 - Datas usam ISO 8601. Contratos de erro seguem `ApiErrorResponse` com códigos como `VALIDATION_ERROR`, `OUT_OF_STOCK`, `QUOTE_CHANGED`, `SESSION_EXPIRED` e `IDEMPOTENCY_CONFLICT`.
@@ -206,19 +207,20 @@ A identidade visual foi aproximada a partir dos frames do Figma:
 
 Fonte principal: **Roboto Mono**, servida localmente por Fontsource. Assets de NFTs ficam em `src/assets/images/nfts/`; elementos SVG de navegação ficam em `src/assets/navigation/`.
 
-- Desktop: `DesktopHeader`, filtros laterais do catálogo e rodapé nas páginas previstas.
-- Mobile: `MobileNavigation`, navegação inferior, busca e menu em `<dialog>` nativo; o foco volta ao acionador quando o diálogo é fechado.
+- Desktop: `DesktopHeader`, filtros laterais do catálogo, tabela de carrinho, rodapé e seções editoriais da Home nas páginas previstas.
+- Mobile: `MobileNavigation`, navegação inferior, busca, carrinho em cartões e menu em `<dialog>` nativo; o foco volta ao acionador quando o diálogo é fechado.
 - Estados compartilhados: `LoadingSkeleton` (com shimmer e preferência por movimento reduzido), `EmptyState` e `ErrorState`.
-- A página de detalhes mostra seletores de edição e quantidade. O carrinho usa dados do estoque atual para comunicar indisponibilidade.
+- A página de detalhes mostra galeria, edições, atributos, quantidade e ações de compra; a composição desktop/mobile foi refinada para aproximar os frames de referência. O carrinho usa os dados atuais de estoque e preços, com ações reais mesmo no layout em tabela.
 - Elementos relevantes incluem rótulos, estados de erro e foco visível nos componentes revisados.
 
 ### Desvios conhecidos em relação ao Figma
 
-- Alguns espaçamentos, dimensões e raios foram aproximados, não copiados pixel a pixel.
-- O hero mobile, os filtros, o seletor de faixa de preço e algumas composições diferem dos frames originais.
-- Ícones de redes sociais e parte dos ícones de navegação usam versões simplificadas ou Lucide.
-- O botão/símbolo central da barra inferior usa comportamento adaptado para abrir o menu; o estado de menu não tinha frame de referência específico.
-- A fidelidade fina dos layouts em 390, 768 e 1440 px e os estados de zoom ainda dependem de revisão final.
+- Abas de catálogo, slider duplo de preço, paginação numérica, galeria de detalhes e carrinho foram refinados para refletir melhor a composição do Figma. As abas usam os recursos reais disponíveis: **Em alta** filtra o marcador `featured`, não uma métrica de popularidade inexistente no mock.
+- As seções de banners e artigos editoriais são demonstrações de conteúdo, não um CMS; fotos e textos podem diferir dos frames originais.
+- Alguns espaçamentos, dimensões, raios, textos e estados secundários foram aproximados, não copiados pixel a pixel.
+- Ícones sociais e parte dos ícones da navegação usam versões simplificadas ou Lucide. O botão central da barra inferior abre o menu por comportamento adaptado.
+- O modal desktop de autenticação utiliza composição de catálogo ao fundo. A aparência pode variar de acordo com viewport, dados exibidos e o nível de escurecimento do backdrop.
+- A fidelidade fina em 390, 768 e 1440 px, zoom, estados de erro/validação e contrastes depende de verificação final completa; não se reivindica conformidade integral com Figma ou WCAG.
 
 ## 11. Qualidade, testes e publicação
 
@@ -233,7 +235,28 @@ npm run test:e2e
 npm run test:e2e:report
 ```
 
-O Playwright foi configurado para **Chromium desktop (1440 × 900)** e **mobile (390 × 844)**, com relatório HTML, screenshots, vídeos e traces em falhas. Na revisão desta documentação, o teste de smoke da página inicial passou em ambos os projetos. **Isso não equivale à cobertura completa de compra, idempotência, cenários de falha e reconexão.**
+### Suíte E2E validada
+
+O Playwright roda com **Chromium desktop (1440 × 900)** e **mobile (390 × 844)**, `workers: 1`, serviço Vite com MSW local e **relatório HTML, screenshots, vídeo e trace em caso de falha**. A última execução completa **reportada pelo desenvolvedor em 25/10/2026** aprovou **12/12 execuções**: seis cenários em cada viewport.
+
+| Origem | Cenário | Evidências verificadas |
+| --- | --- | --- |
+| `tests/e2e/home.spec.ts` | Smoke da Home | Título e navegação, com diferenças de controles desktop/mobile |
+| `tests/e2e/purchase.spec.ts` — 01 | Compra completa | Detalhe → carrinho → autenticação → carteira → cotação → pagamento → recibo persistente após F5 |
+| `purchase.spec.ts` — 02 | Carrinho/cupom | Quantidade após refresh, mesclagem visitante→autenticado e desconto `BEMVINDO10` |
+| `purchase.spec.ts` — 03 | Recusa/idempotência | `payment-refused`, clique repetido e ausência de duplicação de pedidos |
+| `purchase.spec.ts` — 04 | Timeout/recuperação | `order-timeout`, pedido gravado antes da perda da resposta, recuperação após F5, mesma tentativa/chave e somente um pedido |
+| `purchase.spec.ts` — 05 | Preço via WebSocket | Emissão de `nft.updated` no MSW, atualização no checkout, bloqueio de cotação desatualizada e nova revisão |
+
+Os testes de compra usam contextos isolados do runner e reinicialização explícita do banco do MSW (`window.mocks.reset(false)`) antes do cenário. A validação combina asserções de UI e, nos casos de idempotência, leitura do **banco fictício local** para contar pedidos. A simulação de eventos passa pelo cliente Socket.IO.
+
+```bash
+npx playwright install chromium
+npm run test:e2e
+npm run test:e2e:report
+```
+
+**Escopo e temporalidade da evidência:** 12 execuções bem-sucedidas não significam cobertura de todos os requisitos do desafio. Não foram comprovadas suites amplas de acessibilidade, regressão visual, múltiplos navegadores, todos os estados de erro ou reconexões. O resultado reportado é anterior ao pacote final de polimento do carrinho e do modal; caso esse pacote esteja incluído na entrega, é necessário executar novamente `npm run test:e2e`, `npm run typecheck`, `npm run lint` e `npm run build` para atestar o estado final.
 
 Publicação: https://frontend-challenge-two-ruddy.vercel.app/  
 O projeto usa build estático Vite e deploy vinculado ao repositório GitHub. O acesso direto às rotas exige fallback SPA; a demonstração requer MSW habilitado nas variáveis de build.
@@ -246,9 +269,10 @@ Por restrição de tempo, o foco foi assegurar os fluxos principais e a publica�
 
 - As rotas `/profile` e `/wallets` são páginas provisórias. Os handlers e contratos REST existem, mas os formulários visuais de edição de perfil, avatar, senha e gestão de carteiras não estão completos.
 - O checkout já revalida valores e lida com conflitos. A experiência dedicada de alerta proativo para toda alteração de preço/estoque durante a compra ainda não foi finalizada.
-- A suíte Playwright ainda não cobre todos os fluxos e cenários críticos; o conjunto validado nesta revisão é o smoke desktop/mobile.
-- Auditoria Lighthouse completa (múltiplas execuções, medianas e diagnóstico) não foi documentada por falta de resultados medidos.
-- Ajustes finais de fidelidade ao Figma e auditoria sistemática de acessibilidade/responsividade permanecem pendentes.
+- A suíte Playwright alcançou **12 execuções aprovadas reportadas (seis cenários × dois viewports)**, mas não cobre exaustivamente cenários extremos, reconexões, acessibilidade e regressão visual; uma rodada visual posterior precisa de revalidação.
+- Auditoria Lighthouse completa (três execuções por página e viewport, medianas e diagnóstico das métricas) não foi documentada por falta de resultados medidos.
+- O polimento visual avançou na Home, Detalhes, carrinho e modais, mas o Figma não foi reproduzido 100%; faltam checagens sistemáticas de fidelidade, conteúdo demonstrativo, acessibilidade e responsividade intermediária (768 px).
 - O banco simulado é local ao navegador. Não há servidor multiusuário, transação blockchain nem persistência compartilhada de produção.
+- As seções editoriais, integrações sociais e opções fora dos fluxos principais podem ser demonstrativas ou não possuir páginas de destino completas.
 
 Essas limitações não alteram a existência das APIs, da simulação de compras e da conexão em tempo real descritas acima, mas delimitam o escopo efetivamente demonstrado.
