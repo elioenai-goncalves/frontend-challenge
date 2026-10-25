@@ -2,6 +2,8 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import { LogIn, Search, ShoppingCart } from "lucide-react";
 import { UserMenu } from "@/components/layout/user-menu";
 import { useSession } from "@/lib/session";
+import { CartCountBadge } from "@/components/cart/cart-count-badge";
+import { useCartCount } from "@/hooks/use-cart";
 
 interface DesktopHeaderProps {
   showDivider?: boolean;
@@ -17,6 +19,9 @@ export function DesktopHeader({ showDivider = true }: DesktopHeaderProps) {
   });
 
   const session = useSession();
+  const { count: cartCount, isError: cartError } = useCartCount(
+    session.user?.id ?? null,
+  );
   const isHome = pathname === "/";
 
   const isMarket =
@@ -104,10 +109,18 @@ export function DesktopHeader({ showDivider = true }: DesktopHeaderProps) {
 
             <Link
               to="/cart"
-              aria-label="Abrir carrinho"
-              className={`inline-flex size-9 items-center justify-center ${focusClassName}`}
+              aria-label={
+                cartError
+                  ? "Abrir carrinho — não foi possível carregar a quantidade"
+                  : `Abrir carrinho — ${cartCount} ${
+                      cartCount === 1 ? "item" : "itens"
+                    }`
+              }
+              className={`relative inline-flex size-9 items-center justify-center ${focusClassName}`}
             >
               <ShoppingCart aria-hidden="true" size={20} strokeWidth={1.5} />
+
+              <CartCountBadge count={cartCount} />
             </Link>
 
             {session.status === "authenticated" ? (

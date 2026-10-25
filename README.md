@@ -150,9 +150,6 @@ edições disponíveis, preço e controle de quantidade.
 - Os limites de estoque e quantidade são validados
   novamente pelo servidor simulado.
 
-A página completa do carrinho e a mesclagem do carrinho
-visitante após login pertencem à Issue 16.
-
 ### Atualização otimista
 
 As alterações de favoritos são refletidas imediatamente
@@ -193,14 +190,32 @@ O carrinho do visitante usa `X-Guest-Cart-Id`, mantido
 no localStorage. Usuários autenticados utilizam o token
 de sessão.
 
-### Pendências
+### Mesclagem após autenticação
 
-- Mesclagem do carrinho visitante após login.
-- Contador no cabeçalho desktop/mobile.
-- Sincronização em tempo real com Socket.IO (Issue 11).
+O carrinho visitante utiliza o identificador persistido
+em `frontend-challenge:guest-cart-id`.
 
-Cupom, subtotal, desconto, taxa e total serão tratados
-na Issue 17. Checkout pertence à Issue 18.
+Após login ou cadastro, a consulta autenticada do carrinho
+verifica se existe um identificador visitante pendente.
+
+Se existir, envia `POST /api/cart/merge` antes de consultar
+o carrinho do usuário.
+
+- A mesclagem é realizada no handler do MSW.
+- O identificador visitante só é removido após sucesso.
+- Falhas preservam o identificador para nova tentativa.
+- Repetir a consulta não deve duplicar os itens mesclados.
+- O cache é isolado entre visitantes e usuários autenticados.
+- O contador exibe a soma das quantidades dos itens.
+- Desktop e mobile compartilham o cache do TanStack Query.
+
+### Limitações
+
+- A sincronização do carrinho por eventos Socket.IO
+  depende da Issue 11.
+- Cupom, subtotal, descontos, taxas e total pertencem
+  à Issue 17.
+- Pagamento e confirmação pertencem às Issues 18 e 19.
 
 # React + TypeScript + Vite
 

@@ -3,6 +3,9 @@ import type { FormEvent } from "react";
 import mobileTabBar from "@/assets/navigation/mobile-tab-bar.svg";
 import mobileMenuSymbol from "@/assets/navigation/mobile-menu-symbol.svg";
 import { Link, useRouter, useRouterState } from "@tanstack/react-router";
+import { CartCountBadge } from "@/components/cart/cart-count-badge";
+import { useCartCount } from "@/hooks/use-cart";
+import { useSession } from "@/lib/session";
 import {
   ArrowLeft,
   Heart,
@@ -20,6 +23,11 @@ const focusClassName =
 
 export function MobileNavigation() {
   const router = useRouter();
+  const session = useSession();
+
+  const { count: cartCount, isError: cartError } = useCartCount(
+    session.user?.id ?? null,
+  );
 
   const pathname = useRouterState({
     select: (state) => state.location.pathname,
@@ -174,14 +182,21 @@ export function MobileNavigation() {
 
           <button
             type="button"
-            aria-label="Abrir menu de navegação"
+            aria-label={
+              cartCount > 0
+                ? `Abrir menu de navegação — carrinho com ${cartCount} ${
+                    cartCount === 1 ? "item" : "itens"
+                  }`
+                : "Abrir menu de navegação"
+            }
             aria-haspopup="dialog"
             aria-controls={dialogId}
             aria-expanded={isOpen}
             onClick={(event) => openMenu(event.currentTarget)}
-            className={`mobile-menu-trigger inline-flex shrink-0 items-center justify-center bg-primary text-primary-foreground ${focusClassName}`}
+            className={`relative mobile-menu-trigger inline-flex shrink-0 items-center justify-center bg-primary text-primary-foreground ${focusClassName}`}
           >
             <Menu size={20} aria-hidden="true" />
+            {!isHome && <CartCountBadge count={cartCount} />}
           </button>
         </div>
       </header>
@@ -230,8 +245,14 @@ export function MobileNavigation() {
 
             <Link
               to="/cart"
-              aria-label="Carrinho"
-              className={`mobile-tab-bar__item text-text-secondary ${focusClassName}`}
+              aria-label={
+                cartError
+                  ? "Carrinho indisponível"
+                  : `Carrinho — ${cartCount} ${
+                      cartCount === 1 ? "item" : "itens"
+                    }`
+              }
+              className={`relative mobile-tab-bar__item text-text-secondary ${focusClassName}`}
             >
               <ShoppingCart
                 size={20}
@@ -239,6 +260,8 @@ export function MobileNavigation() {
                 strokeWidth={1.5}
                 aria-hidden="true"
               />
+
+              <CartCountBadge count={cartCount} />
             </Link>
 
             <Link
@@ -315,7 +338,7 @@ export function MobileNavigation() {
             onClick={closeMenu}
             className={`px-3 py-3 ${focusClassName}`}
           >
-            Carrinho
+            Carrinho{cartCount > 0 ? ` (${cartCount})` : ''}
           </Link>
 
           <Link

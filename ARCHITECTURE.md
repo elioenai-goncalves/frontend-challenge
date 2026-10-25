@@ -722,8 +722,28 @@ Limites da validação
 - O resumo financeiro completo usará a cotação
   da API na Issue 17.
 
-### Pendências
+### Mesclagem visitante e usuário
 
-- Mescla de carrinho visitante/autenticado.
-- Contador de itens na navegação.
-- Reconciliação com eventos Socket.IO (Issue 11).
+- A consulta `useCart` identifica carrinho visitante pendente.
+- Antes do GET autenticado, executa POST /cart/merge.
+- A API concentra as regras de soma, disponibilidade e limites.
+- A chave do visitante só é removida após resposta bem-sucedida.
+- Falha de rede mantém a chave para nova tentativa.
+- Respostas de mesclagem não são aplicadas se a sessão mudou.
+- As query keys identificam o proprietário do carrinho.
+- A troca de sessão limpa o cache privado existente.
+
+### Contador
+
+- `useCartCount` reutiliza `useCart`.
+- O número representa a soma de `quantity`.
+- O cache é compartilhado entre página, cabeçalho
+  desktop e navegação mobile.
+- As mutations atualizam o cache com a resposta da API.
+- O contador fica acessível por texto nos links de navegação.
+
+### Dependência pendente
+
+- A reconciliação de preço e estoque por Socket.IO
+  depende da Issue 11.
+- A Issue 16 permanece aberta até essa integração.

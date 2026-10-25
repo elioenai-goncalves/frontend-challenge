@@ -11,6 +11,7 @@ import type {
 } from '@/contracts/api'
 
 import { api } from '@/lib/api-client'
+import { getSession } from '@/lib/session'
 
 const GUEST_CART_STORAGE_KEY =
   'frontend-challenge:guest-cart-id'
@@ -53,6 +54,36 @@ export function useCart(userId: string | null) {
     queryKey: cartKeys.forOwner(userId),
 
     queryFn: async ({ signal }) => {
+      const pendingGuestCartId =
+        userId !== null
+          ? localStorage.getItem(GUEST_CART_STORAGE_KEY)
+          : null
+
+      if (userId !== null && pendingGuestCartId) {
+        const { data } = await api.post<CartResponse>(
+          '/cart/merge',
+          {
+            guestCartId: pendingGuestCartId,
+          },
+          { signal },
+        )
+
+        if (getSession().user?.id !== userId) {
+          throw new Error(
+            'A sessão mudou durante a mesclagem do carrinho.',
+          )
+        }
+
+        if (
+          localStorage.getItem(GUEST_CART_STORAGE_KEY) ===
+          pendingGuestCartId
+        ) {
+          localStorage.removeItem(GUEST_CART_STORAGE_KEY)
+        }
+
+        return data
+      }
+
       const { data } = await api.get<CartResponse>(
         '/cart',
         {
@@ -64,6 +95,21 @@ export function useCart(userId: string | null) {
       return data
     },
   })
+}
+
+export function useCartCount(userId: string | null) {
+  const cart = useCart(userId)
+
+  const count =
+    cart.data?.items.reduce(
+      (total, item) => total + item.quantity,
+      0,
+    ) ?? 0
+
+  return {
+    count,
+    isError: cart.isError,
+  }
 }
 
 export function useAddCartItem(userId: string | null) {
