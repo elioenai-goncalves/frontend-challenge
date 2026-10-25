@@ -100,18 +100,42 @@ envie um pedido e, depois do erro de rede, repita a mesma chave.
 ## Detalhe do NFT
 
 A rota `/nfts/:nftId` consulta `GET /api/nfts/:nftId`
-por Axios e TanStack Query.
+usando Axios e TanStack Query.
 
-A tela apresenta imagem, informações, edições,
-disponibilidade, preço e controle de quantidade.
+A tela apresenta imagem, informações, características,
+edições disponíveis, preço e controle de quantidade.
 
-- A quantidade respeita o estoque e o limite por pedido.
+### Funcionalidades
+
+- A quantidade respeita o estoque e `maxPerOrder`.
+- Edições esgotadas não permitem compra.
 - NFTs inexistentes apresentam estado de não encontrado.
-- Falhas da API apresentam opção de nova tentativa.
+- Falhas de consulta apresentam opção de nova tentativa.
 - O carregamento utiliza skeletons com shimmer.
 
-A integração de favoritos e compra será concluída
-na segunda etapa da Issue 14.
+### Favoritos
+
+- Visitantes são direcionados ao login, preservando
+  a rota de detalhe para retorno.
+- Usuários autenticados podem favoritar e desfavoritar.
+- Os favoritos são persistidos pelo MSW e isolados por usuário.
+- Erros da API são apresentados na interface.
+
+### Adicionar ao carrinho
+
+- A adição utiliza `POST /api/cart/items`.
+- Visitantes são identificados pelo cabeçalho
+  `X-Guest-Cart-Id`, persistido no localStorage.
+- Usuários autenticados utilizam seu token de sessão.
+- O redirecionamento para `/cart` acontece somente
+  após resposta de sucesso da API.
+- Os limites de estoque e quantidade são validados
+  novamente pelo servidor simulado.
+
+A página completa do carrinho e a mesclagem do carrinho
+visitante após login pertencem à Issue 16.
+
+A atualização otimista dos favoritos pertence à Issue 15.
 
 # React + TypeScript + Vite
 

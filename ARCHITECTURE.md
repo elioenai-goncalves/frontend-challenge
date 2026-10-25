@@ -660,3 +660,33 @@ Limites da validação
 - Integrar favoritos com autenticação e mutations.
 - Integrar adição ao carrinho para visitante e usuário.
 - Conferir composição visual com os frames do Figma.
+
+### Favoritos e mutations
+
+- `useFavorites` consulta `GET /favorites`.
+- A query key inclui o identificador do usuário.
+- `useToggleFavorite` executa POST ou DELETE.
+- O cache é atualizado com a resposta da mutation.
+- Visitantes não consultam favoritos; são direcionados
+  ao login com a rota original no parâmetro `redirect`.
+- A atualização otimista com rollback será tratada
+  na Issue 15.
+
+### Carrinho
+
+- `useAddCartItem` envia `POST /cart/items`.
+- O payload contém `nftId`, `editionId` e `quantity`.
+- A API valida disponibilidade e limite por pedido.
+- O visitante recebe um UUID persistido no localStorage,
+  enviado em `X-Guest-Cart-Id`.
+- A sessão autenticada utiliza o token do cliente Axios.
+- O cache do carrinho é isolado por usuário ou visitante.
+- A navegação para o carrinho só ocorre após sucesso.
+- A mesclagem visitante/autenticado fica para a Issue 16.
+
+### Limitações e continuidade
+
+- A galeria depende das imagens disponíveis no catálogo.
+- O Figma ainda requer conferência visual fina da página.
+- A interface do carrinho será concluída na Issue 16.
+- O suporte a eventos de tempo real pertence às Issues 10 e 11.

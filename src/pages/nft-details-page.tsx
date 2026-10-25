@@ -1,14 +1,19 @@
-import { useState } from 'react'
-import { AxiosError } from 'axios'
-import { Link, useParams } from '@tanstack/react-router'
+import { useState } from "react";
+import { AxiosError } from "axios";
+import { Link, useNavigate, useParams } from "@tanstack/react-router";
+import { Heart, ShoppingCart } from "lucide-react";
 
-import { EmptyState } from '@/components/empty-state'
-import { ErrorState } from '@/components/error-state'
-import { LoadingSkeleton } from '@/components/ui/loading-skeleton'
-import type { Nft } from '@/contracts/api'
-import { useNftDetail } from '@/hooks/use-nft-detail'
-import { getApiErrorMessage } from '@/lib/api-client'
-import { useSession } from '@/lib/session'
+import { Button } from "@/components/ui/button";
+import { useFavorites, useToggleFavorite } from "@/hooks/use-favorites";
+import { useAddCartItem } from "@/hooks/use-cart";
+
+import { EmptyState } from "@/components/empty-state";
+import { ErrorState } from "@/components/error-state";
+import { LoadingSkeleton } from "@/components/ui/loading-skeleton";
+import type { Nft } from "@/contracts/api";
+import { useNftDetail } from "@/hooks/use-nft-detail";
+import { getApiErrorMessage } from "@/lib/api-client";
+import { useSession } from "@/lib/session";
 
 function NftDetailSkeleton() {
   return (
@@ -17,9 +22,7 @@ function NftDetailSkeleton() {
       aria-label="Carregando detalhe do NFT"
       className="grid gap-8 lg:grid-cols-2"
     >
-      <span className="sr-only">
-        Carregando detalhe do NFT...
-      </span>
+      <span className="sr-only">Carregando detalhe do NFT...</span>
 
       <div>
         <LoadingSkeleton className="aspect-square w-full" />
@@ -37,39 +40,93 @@ function NftDetailSkeleton() {
         <LoadingSkeleton className="h-12 w-1/2" />
       </div>
     </div>
-  )
+  );
 }
 
 function NftDetailContent({ nft }: { nft: Nft }) {
-  const [activeImageIndex, setActiveImageIndex] = useState(0)
+  const session = useSession();
+  const navigate = useNavigate({
+    from: "/nfts/$nftId",
+  });
+
+  const userId = session.user?.id ?? null;
+
+  const favorites = useFavorites(userId);
+  const toggleFavorite = useToggleFavorite(userId);
+  const addToCart = useAddCartItem(userId);
+
+  const isFavorite = favorites.data?.nftIds.includes(nft.id) ?? false;
+
+  function handleFavorite() {
+    if (session.status !== "authenticated") {
+      void navigate({
+        to: "/login",
+        search: {
+          redirect: `/nfts/${encodeURIComponent(nft.id)}`,
+        },
+      });
+
+      return;
+    }
+
+    if (favorites.isPending || favorites.isError || toggleFavorite.isPending) {
+      return;
+    }
+
+    toggleFavorite.mutate({
+      nftId: nft.id,
+      isFavorite,
+    });
+  }
+
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
 
   const [editionId, setEditionId] = useState(
-    nft.editions.find(
-      (edition) => edition.availableQuantity > 0,
-    )?.id ?? nft.editions[0]?.id ?? '',
-  )
+    nft.editions.find((edition) => edition.availableQuantity > 0)?.id ??
+      nft.editions[0]?.id ??
+      "",
+  );
 
-  const [requestedQuantity, setRequestedQuantity] = useState(1)
+  const [requestedQuantity, setRequestedQuantity] = useState("1");
 
-  const activeImage =
-    nft.imageUrls[activeImageIndex] ?? nft.imageUrls[0]
+  const activeImage = nft.imageUrls[activeImageIndex] ?? nft.imageUrls[0];
 
-  const edition =
-    nft.editions.find((item) => item.id === editionId) ?? null
+  const edition = nft.editions.find((item) => item.id === editionId) ?? null;
 
   const limit = edition
-    ? Math.min(
-        edition.availableQuantity,
-        edition.maxPerOrder,
-      )
-    : 0
+    ? Math.min(edition.availableQuantity, edition.maxPerOrder)
+    : 0;
 
-  const quantity = Math.min(
-    Math.max(requestedQuantity, 1),
-    Math.max(limit, 1),
-  )
+  const parsedQuantity = Number(requestedQuantity);
 
-  const isAvailable = limit > 0
+  const isAvailable = limit > 0;
+
+  const isQuantityValid =
+    /^\d+$/.test(requestedQuantity) &&
+    Number.isSafeInteger(parsedQuantity) &&
+    parsedQuantity >= 1 &&
+    parsedQuantity <= limit;
+
+  const quantity = isQuantityValid ? parsedQuantity : 1;
+
+  function handleAddToCart() {
+    if (!edition || !isAvailable || !isQuantityValid || addToCart.isPending) {
+      return;
+    }
+
+    addToCart.mutate(
+      {
+        nftId: nft.id,
+        editionId: edition.id,
+        quantity,
+      },
+      {
+        onSuccess: () => {
+          void navigate({ to: "/cart" });
+        },
+      },
+    );
+  }
 
   return (
     <>
@@ -85,15 +142,14 @@ function NftDetailContent({ nft }: { nft: Nft }) {
           Início
         </Link>
 
-        <span aria-hidden="true" className="mx-2">/</span>
+        <span aria-hidden="true" className="mx-2">
+          /
+        </span>
         <span aria-current="page">{nft.name}</span>
       </nav>
 
       <div className="grid gap-8 lg:grid-cols-2 lg:gap-12">
-        <section
-          aria-label="Galeria do NFT"
-          className="min-w-0"
-        >
+        <section aria-label="Galeria do NFT" className="min-w-0">
           <div className="aspect-square overflow-hidden rounded-lg bg-card">
             {activeImage ? (
               <img
@@ -124,13 +180,13 @@ function NftDetailContent({ nft }: { nft: Nft }) {
                   aria-label={`Ver imagem ${index + 1}`}
                   aria-pressed={index === activeImageIndex}
                   className={[
-                    'size-20 overflow-hidden rounded-md border-2',
-                    'focus-visible:outline-2 focus-visible:outline-offset-2',
-                    'focus-visible:outline-primary',
+                    "size-20 overflow-hidden rounded-md border-2",
+                    "focus-visible:outline-2 focus-visible:outline-offset-2",
+                    "focus-visible:outline-primary",
                     index === activeImageIndex
-                      ? 'border-primary'
-                      : 'border-border',
-                  ].join(' ')}
+                      ? "border-primary"
+                      : "border-border",
+                  ].join(" ")}
                 >
                   <img
                     src={url}
@@ -144,18 +200,10 @@ function NftDetailContent({ nft }: { nft: Nft }) {
           )}
         </section>
 
-        <section
-          aria-labelledby="nft-detail-title"
-          className="min-w-0"
-        >
-          <p className="text-sm text-primary">
-            {nft.collectionName}
-          </p>
+        <section aria-labelledby="nft-detail-title" className="min-w-0">
+          <p className="text-sm text-primary">{nft.collectionName}</p>
 
-          <h1
-            id="nft-detail-title"
-            className="mt-2 text-3xl font-bold"
-          >
+          <h1 id="nft-detail-title" className="mt-2 text-3xl font-bold">
             {nft.name}
           </h1>
 
@@ -168,24 +216,22 @@ function NftDetailContent({ nft }: { nft: Nft }) {
           </p>
 
           <fieldset className="mt-8">
-            <legend className="mb-3 font-semibold">
-              Selecione a edição
-            </legend>
+            <legend className="mb-3 font-semibold">Selecione a edição</legend>
 
             <div className="grid gap-3">
               {nft.editions.map((item) => {
-                const soldOut = item.availableQuantity === 0
+                const soldOut = item.availableQuantity === 0;
 
                 return (
                   <label
                     key={item.id}
                     className={[
-                      'flex cursor-pointer items-start gap-3',
-                      'rounded-lg border p-4',
+                      "flex cursor-pointer items-start gap-3",
+                      "rounded-lg border p-4",
                       item.id === editionId
-                        ? 'border-primary bg-card'
-                        : 'border-border',
-                    ].join(' ')}
+                        ? "border-primary bg-card"
+                        : "border-border",
+                    ].join(" ")}
                   >
                     <input
                       type="radio"
@@ -193,20 +239,18 @@ function NftDetailContent({ nft }: { nft: Nft }) {
                       value={item.id}
                       checked={editionId === item.id}
                       onChange={() => {
-                        setEditionId(item.id)
-                        setRequestedQuantity(1)
+                        setEditionId(item.id);
+                        setRequestedQuantity("1");
                       }}
                       className="mt-1 accent-primary"
                     />
 
                     <span className="min-w-0 flex-1">
-                      <span className="block font-medium">
-                        {item.label}
-                      </span>
+                      <span className="block font-medium">{item.label}</span>
 
                       <span className="mt-1 block text-sm text-text-secondary">
                         {soldOut
-                          ? 'Esgotada — esta edição não pode ser comprada'
+                          ? "Esgotada — esta edição não pode ser comprada"
                           : `${item.availableQuantity} disponíveis · limite de ${item.maxPerOrder} por pedido`}
                       </span>
                     </span>
@@ -215,7 +259,7 @@ function NftDetailContent({ nft }: { nft: Nft }) {
                       {item.priceEth} ETH
                     </span>
                   </label>
-                )
+                );
               })}
 
               {nft.editions.length === 0 && (
@@ -227,10 +271,7 @@ function NftDetailContent({ nft }: { nft: Nft }) {
           </fieldset>
 
           <div className="mt-6">
-            <label
-              htmlFor="nft-quantity"
-              className="mb-2 block font-semibold"
-            >
+            <label htmlFor="nft-quantity" className="mb-2 block font-semibold">
               Quantidade
             </label>
 
@@ -241,22 +282,35 @@ function NftDetailContent({ nft }: { nft: Nft }) {
               min={1}
               max={Math.max(limit, 1)}
               step={1}
-              value={quantity}
+              value={requestedQuantity}
               disabled={!isAvailable}
+              aria-invalid={isAvailable && !isQuantityValid}
               onChange={(event) => {
-                const next = Number(event.currentTarget.value)
+                setRequestedQuantity(event.currentTarget.value);
+              }}
+              onBlur={() => {
+                const value = Number(requestedQuantity);
 
-                setRequestedQuantity(
-                  Number.isInteger(next)
-                    ? Math.min(Math.max(next, 1), limit)
-                    : 1,
-                )
+                if (
+                  requestedQuantity.trim() === "" ||
+                  !Number.isSafeInteger(value)
+                ) {
+                  setRequestedQuantity("1");
+                  return;
+                }
+
+                const normalized = Math.min(
+                  Math.max(value, 1),
+                  Math.max(limit, 1),
+                );
+
+                setRequestedQuantity(String(normalized));
               }}
               aria-describedby="nft-quantity-help"
               className={[
-                'h-11 w-28 rounded-md border border-border',
-                'bg-card px-3 text-foreground disabled:opacity-50',
-              ].join(' ')}
+                "h-11 w-28 rounded-md border border-border",
+                "bg-card px-3 text-foreground disabled:opacity-50",
+              ].join(" ")}
             />
 
             <p
@@ -266,58 +320,111 @@ function NftDetailContent({ nft }: { nft: Nft }) {
             >
               {isAvailable
                 ? `Máximo: ${limit} por compra.`
-                : 'Esta edição está indisponível para compra.'}
+                : "Esta edição está indisponível para compra."}
             </p>
           </div>
 
-          {Object.keys(nft.attributes).length > 0 && (
-            <section
-              aria-labelledby="nft-attributes-title"
-              className="mt-8"
+          <div className="mt-6 flex flex-wrap gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              className="min-h-11 gap-2 px-5"
+              onClick={handleFavorite}
+              disabled={
+                toggleFavorite.isPending ||
+                (session.status === "authenticated" &&
+                  (favorites.isPending || favorites.isError))
+              }
+              aria-pressed={
+                session.status === "authenticated" ? isFavorite : undefined
+              }
+              aria-busy={toggleFavorite.isPending}
             >
-              <h2
-                id="nft-attributes-title"
-                className="font-semibold"
+              <Heart
+                size={18}
+                aria-hidden="true"
+                fill={isFavorite ? "currentColor" : "none"}
+              />
+
+              {toggleFavorite.isPending
+                ? "Salvando..."
+                : isFavorite
+                  ? "Desfavoritar"
+                  : "Favoritar"}
+            </Button>
+
+            <Button
+              type="button"
+              className="min-h-11 gap-2 px-6"
+              onClick={handleAddToCart}
+              disabled={!isAvailable || !isQuantityValid || addToCart.isPending}
+              aria-busy={addToCart.isPending}
+            >
+              <ShoppingCart size={18} aria-hidden="true" />
+
+              {addToCart.isPending ? "Adicionando..." : "Adicionar ao carrinho"}
+            </Button>
+          </div>
+
+          {favorites.isError && (
+            <div role="alert" className="mt-4 text-sm text-destructive">
+              <p>Não foi possível consultar os favoritos.</p>
+
+              <button
+                type="button"
+                onClick={() => void favorites.refetch()}
+                className="mt-2 underline underline-offset-4"
               >
+                Tentar novamente
+              </button>
+            </div>
+          )}
+
+          {toggleFavorite.isError && (
+            <p role="alert" className="mt-4 text-sm text-destructive">
+              {getApiErrorMessage(toggleFavorite.error)}
+            </p>
+          )}
+
+          {addToCart.isError && (
+            <p role="alert" className="mt-4 text-sm text-destructive">
+              {getApiErrorMessage(addToCart.error)}
+            </p>
+          )}
+
+          {Object.keys(nft.attributes).length > 0 && (
+            <section aria-labelledby="nft-attributes-title" className="mt-8">
+              <h2 id="nft-attributes-title" className="font-semibold">
                 Características
               </h2>
 
               <dl className="mt-3 grid grid-cols-2 gap-3">
-                {Object.entries(nft.attributes).map(
-                  ([name, value]) => (
-                    <div
-                      key={name}
-                      className="rounded-md border border-border bg-card p-3"
-                    >
-                      <dt className="text-xs text-text-secondary">
-                        {name}
-                      </dt>
-                      <dd className="mt-1 text-sm font-semibold">
-                        {value}
-                      </dd>
-                    </div>
-                  ),
-                )}
+                {Object.entries(nft.attributes).map(([name, value]) => (
+                  <div
+                    key={name}
+                    className="rounded-md border border-border bg-card p-3"
+                  >
+                    <dt className="text-xs text-text-secondary">{name}</dt>
+                    <dd className="mt-1 text-sm font-semibold">{value}</dd>
+                  </div>
+                ))}
               </dl>
             </section>
           )}
         </section>
       </div>
     </>
-  )
+  );
 }
 
 export function NftDetailsPage() {
-  const { nftId } = useParams({ from: '/nfts/$nftId' })
-  const session = useSession()
+  const { nftId } = useParams({ from: "/nfts/$nftId" });
+  const session = useSession();
 
-  const detail = useNftDetail(
-    nftId,
-    session.user?.id ?? null,
-  )
+  const detail = useNftDetail(nftId, session.user?.id ?? null);
 
   if (detail.isPending) {
-    return <NftDetailSkeleton />
+    return <NftDetailSkeleton />;
   }
 
   if (detail.isError) {
@@ -339,7 +446,7 @@ export function NftDetailsPage() {
             Voltar ao catálogo
           </Link>
         </div>
-      )
+      );
     }
 
     return (
@@ -348,7 +455,7 @@ export function NftDetailsPage() {
         onRetry={() => void detail.refetch()}
         isRetrying={detail.isFetching}
       />
-    )
+    );
   }
 
   if (!detail.data) {
@@ -357,13 +464,8 @@ export function NftDetailsPage() {
         title="NFT indisponível"
         description="Não foi possível carregar o item solicitado."
       />
-    )
+    );
   }
 
-  return (
-    <NftDetailContent
-      key={detail.data.nft.id}
-      nft={detail.data.nft}
-    />
-  )
+  return <NftDetailContent key={detail.data.nft.id} nft={detail.data.nft} />;
 }
