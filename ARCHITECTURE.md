@@ -719,8 +719,8 @@ Limites da validação
 
 - ETH permanece representado como string decimal.
 - A UI não calcula totais com Number.
-- O resumo financeiro completo usará a cotação
-  da API na Issue 17.
+- O resumo financeiro foi implementado,
+  utilizando a resposta de POST /api/quotes.
 
 ### Mesclagem visitante e usuário
 
@@ -747,3 +747,57 @@ Limites da validação
 - A reconciliação de preço e estoque por Socket.IO
   depende da Issue 11.
 - A Issue 16 permanece aberta até essa integração.
+
+## Cotação e cupons
+
+### Contrato
+
+POST /api/quotes
+
+Entrada:
+- network: ethereum | polygon | solana
+- couponCode: opcional
+
+Resposta:
+- id
+- cartId
+- cartVersion
+- network
+- items
+- couponCode
+- subtotalEth
+- discountEth
+- networkFeeEth
+- totalEth
+- expiresAt
+
+### Cache e estado assíncrono
+
+- `useQuote` utiliza TanStack Query.
+- A query key contém proprietário, carrinho,
+  versão, rede e cupom.
+- Alterações de quantidade mudam cartVersion
+  e provocam nova cotação.
+- Alterações de rede também geram nova consulta.
+- `useQuoteAction` aplica/remove cupons por mutation.
+- Cupons recusados não substituem a cotação válida.
+- Falhas apresentam feedback e nova tentativa.
+- Respostas ficam isoladas pelo proprietário do carrinho.
+- O AbortSignal do Query é repassado ao Axios.
+
+### Precisão monetária
+
+- O contrato ETH utiliza strings decimais.
+- O MSW converte valores para BigInt com escala
+  fixa de 18 casas decimais.
+- Descontos, taxas e total são calculados no mock.
+- A interface não utiliza Number para somar ETH.
+- Os valores exibidos correspondem à resposta REST.
+
+### Limitações
+
+- A cotação tem TTL de cinco minutos.
+- O checkout deverá revalidar preço, cupom,
+  estoque, taxa e versão antes da confirmação.
+- Socket.IO e atualização de valores em tempo real
+  pertencem às Issues 11 e 20.

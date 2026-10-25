@@ -217,6 +217,44 @@ o carrinho do usuário.
   à Issue 17.
 - Pagamento e confirmação pertencem às Issues 18 e 19.
 
+## Cupom e resumo financeiro
+
+O carrinho utiliza `POST /api/quotes` para obter
+subtotal, desconto, taxa de rede e total.
+
+### Funcionalidades
+
+- Cotação para Ethereum, Polygon e Solana.
+- Aplicação de cupons válidos.
+- Remoção de cupom.
+- Tratamento de cupom inválido ou expirado.
+- Nova cotação após alteração do carrinho ou da rede.
+- Skeletons com shimmer durante carregamento.
+- Erro com possibilidade de nova tentativa.
+
+### Cupons de demonstração
+
+- BEMVINDO10: desconto de 10%.
+- ARTE25: desconto de 25%.
+- VERAO5: cupom expirado.
+- Qualquer outro código: cupom inválido.
+
+### Precisão
+
+Os valores ETH são transportados como strings decimais.
+O MSW utiliza BigInt com escala fixa de 18 casas
+decimais para calcular valores sem ponto flutuante.
+
+O frontend exibe os resultados da API sem realizar
+cálculos financeiros com Number.
+
+### Limitações
+
+- As cotações expiram após cinco minutos.
+- O checkout deverá revalidar a cotação antes do pedido.
+- Atualizações de valores por Socket.IO pertencem
+  às Issues 11 e 20.
+
 # React + TypeScript + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
