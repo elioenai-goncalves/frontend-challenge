@@ -2,11 +2,12 @@ import { http, HttpResponse } from "msw/http";
 import type {
   ListNftsResponse,
   Network,
+  NftFacetsResponse,
   NftResponse,
   NftSort,
 } from "@/contracts/api";
 import { db } from "../db";
-import { ETH_PATTERN, toUnits } from "../decimal";
+import { ETH_PATTERN, fromUnits, toUnits } from "../decimal";
 import { listingPrice, toNft } from "../mappers";
 import { errorResponse } from "../utils";
 
@@ -66,9 +67,11 @@ export const nftHandlers = [
       positiveInt(params.get("pageSize"), DEFAULT_PAGE_SIZE),
       MAX_PAGE_SIZE,
     );
+    const featuredOnly = params.get("featured") === "true";
 
     const filtered = db().nfts.filter((nft) => {
       const price = listingPrice(nft);
+      if (featuredOnly && !nft.featured) return false;
       if (search) {
         const haystack = normalize(
           `${nft.name} ${nft.creatorName} ${nft.collectionName}`,
@@ -119,6 +122,49 @@ export const nftHandlers = [
       total: sorted.length,
       page,
       pageSize,
+    };
+    return HttpResponse.json(body);
+  }),
+
+  http.get("/api/nfts/facets", () => {
+    const categories = new Map<string, number>();
+    const collections = new Map<string, { name: string; count: number }>();
+    const networks = new Map<Network, number>();
+    let min: bigint | null = null;
+    let max: bigint | null = null;
+
+    for (const nft of db().nfts) {
+      categories.set(nft.category, (categories.get(nft.category) ?? 0) + 1);
+      collections.set(nft.collectionId, {
+        name: nft.collectionName,
+        count: (collections.get(nft.collectionId)?.count ?? 0) + 1,
+      });
+      networks.set(nft.network, (networks.get(nft.network) ?? 0) + 1);
+
+      const price = listingPrice(nft);
+      if (price !== null) {
+        if (min === null || price < min) min = price;
+        if (max === null || price > max) max = price;
+      }
+    }
+
+    const body: NftFacetsResponse = {
+      categories: [...categories]
+        .map(([name, count]) => ({ name, count }))
+        .sort((a, b) => a.name.localeCompare(b.name, "pt-BR")),
+      collections: [...collections]
+        .map(([id, value]) => ({ id, name: value.name, count: value.count }))
+        .sort((a, b) => a.name.localeCompare(b.name, "pt-BR")),
+      networks: NETWORKS.filter((network) => networks.has(network)).map(
+        (network) => ({
+          network,
+          count: networks.get(network) ?? 0,
+        }),
+      ),
+      priceRange:
+        min !== null && max !== null
+          ? { minEth: fromUnits(min), maxEth: fromUnits(max) }
+          : null,
     };
     return HttpResponse.json(body);
   }),

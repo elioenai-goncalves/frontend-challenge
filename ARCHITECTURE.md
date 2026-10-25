@@ -97,6 +97,7 @@ Os contratos TypeScript ficam em src/contracts/api.ts.
 | GET | /wallets | — | WalletsResponse |
 | POST | /wallets | SaveWalletRequest | WalletResponse |
 | PATCH | /wallets/:id | SaveWalletRequest | WalletResponse |
+| GET | /nfts/facets | — | NftFacetsResponse
 
 ### Regras de transporte e validação
 
@@ -441,10 +442,6 @@ resourceId corresponde ao id do pedido, e version à sua versão.
 - Pedido de outro usuário responde 404, sem revelar a existência.
 
 ### Limites desta entrega
-
-- Cenários de falha e latência: Issue 08.
-- Idempotência de pedidos (`Idempotency-Key`): Issue 09. Hoje o cabeçalho
-  é ignorado e o pedido sempre sai confirmado.
 - Socket.IO: Issues 10 e 11.
 
 ### Verificações manuais da Issue 07
@@ -618,3 +615,18 @@ Limites da validação
 - Não há cenário genérico de lentidão constante nem de timeout de
   requisição; o timeout do cliente Axios será tratado com a Issue 18.
 - Recuperação do pedido por idempotência depende da Issue 09.
+
+## Tela Início
+
+- A tela lê os parâmetros com `useSearch` e atualiza a URL com `navigate`;
+  mudar qualquer filtro, busca ou ordenação reinicia a página.
+- Respostas fora de ordem: cada consulta é identificada por sua chave, e
+  `placeholderData: keepPreviousData` mantém a lista anterior durante a troca.
+- `GET /nfts/facets` fornece contagens por categoria, coleção e rede e a faixa
+  de preço (extensão do contrato); `featured=true` filtra os destaques.
+- Desvios do Figma: a lista "Coleções" usa o filtro de categorias; a faixa de
+  preço usa dois campos numéricos no lugar do seletor de duas alças; o campo
+  de busca fica acima da grade; no mobile, os filtros abrem em painel de tela
+  cheia; o texto de apoio do hero é aproximado.
+- Estados: esqueleto com as dimensões do card, vazio, erro com nova tentativa
+  e página fora do intervalo.

@@ -5,13 +5,13 @@ import { setSessionExpiredHandler } from '@/lib/api-client'
 import { validateCatalogSearch } from '@/lib/catalog-search'
 import { validateLoginSearch } from '@/lib/login-search'
 import { endSession, getSession, initSession } from '@/lib/session'
+import { HomePage } from '@/pages/home-page'
 
 import { LoginPage } from '@/pages/login-page'
 import { RegisterPage } from '@/pages/register-page'
 import {
   CartPage,
   CheckoutPage,
-  HomePage,
   NftDetailsPage,
   NotFoundPage,
   OrderConfirmationPage,

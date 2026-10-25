@@ -1,6 +1,5 @@
 import {
   Link,
-  useSearch,
 } from '@tanstack/react-router'
 interface PlaceholderPageProps {
   title: string
@@ -18,61 +17,6 @@ function PlaceholderPage({
       <p className="mt-4 text-text-secondary">
         {description}
       </p>
-    </section>
-  )
-}
-
-export function HomePage() {
-  const search = useSearch({ from: '/' })
-
-  return (
-    <section>
-      <h1 className="text-2xl font-bold">Início</h1>
-
-      <p className="mt-4 text-text-secondary">
-        O catálogo será implementado na Issue 13.
-      </p>
-
-      <div className="mt-6 flex flex-wrap gap-4">
-        <Link
-          to="/"
-          search={(previous) => ({
-            ...previous,
-            search: 'arte',
-            page: 1,
-          })}
-          className="text-primary underline underline-offset-4"
-        >
-          Testar busca por arte
-        </Link>
-
-        <Link
-          to="/"
-          search={(previous) => ({
-            ...previous,
-            page: (previous.page ?? 1) + 1,
-          })}
-          className="text-primary underline underline-offset-4"
-        >
-          Próxima página
-        </Link>
-
-        <Link
-          to="/"
-          search={{}}
-          className="text-primary underline underline-offset-4"
-        >
-          Limpar filtros
-        </Link>
-      </div>
-
-      <h2 className="mt-8 text-lg font-bold">
-        Parâmetros validados — diagnóstico
-      </h2>
-
-      <pre className="mt-4 overflow-auto rounded bg-muted p-4 text-sm text-muted-foreground">
-        {JSON.stringify(search, null, 2)}
-      </pre>
     </section>
   )
 }

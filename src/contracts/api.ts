@@ -110,6 +110,7 @@ export interface ListNftsRequest {
   sort?: NftSort;
   page?: number;
   pageSize?: number;
+  featured?: boolean
 }
 
 export interface ListNftsResponse {
@@ -121,6 +122,13 @@ export interface ListNftsResponse {
 
 export interface NftResponse {
   nft: Nft;
+}
+
+export interface NftFacetsResponse {
+  categories: { name: string; count: number }[]
+  collections: { id: string; name: string; count: number }[]
+  networks: { network: Network; count: number }[]
+  priceRange: { minEth: EthAmount; maxEth: EthAmount } | null
 }
 
 // ======================================================
