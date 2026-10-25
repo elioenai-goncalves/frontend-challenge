@@ -6,8 +6,10 @@ import { EmptyState } from "@/components/empty-state";
 import { ErrorState } from "@/components/error-state";
 import { LoadingSkeleton } from "@/components/ui/loading-skeleton";
 import { TextField } from "@/components/ui/text-field";
+import { PendingOrderRecovery } from "@/components/checkout/pending-order-recovery";
 
 import type {
+  ApiErrorResponse,
   CartResponse,
   Network,
   Order,
@@ -20,8 +22,7 @@ import { useWallets } from "@/hooks/use-wallets";
 import { useSubmitOrder } from "@/hooks/use-submit-order";
 
 import { getApiErrorMessage } from "@/lib/api-client";
-import { useSession } from "@/lib/session";
-import { getSession } from "@/lib/session";
+import { useSession, getSession } from "@/lib/session";
 import { getFieldErrors } from "@/lib/api-errors";
 
 import {
@@ -301,7 +302,6 @@ function CheckoutContent({
         return;
       }
 
-      // Uma resposta pending não autoriza nova compra.
       setUnresolvedAttempt(attempt);
 
       setReviewError(
@@ -313,9 +313,17 @@ function CheckoutContent({
       const status =
         error instanceof AxiosError ? error.response?.status : undefined;
 
-      if (status !== undefined && status < 500) {
-        // A API respondeu com uma falha de negócio.
-        // Não devemos repetir uma requisição inválida.
+      const apiCode =
+        error instanceof AxiosError
+          ? (error.response?.data as ApiErrorResponse | undefined)?.error?.code
+          : undefined;
+
+      if (
+        status !== undefined &&
+        status < 500 &&
+        status !== 401 &&
+        apiCode !== "IDEMPOTENCY_CONFLICT"
+      ) {
         clearPendingOrder(userId, attempt.key);
         setUnresolvedAttempt(null);
         setApprovedQuote(null);
@@ -738,6 +746,19 @@ export function CheckoutPage() {
 
   const [confirmedOrder, setConfirmedOrder] = useState<Order | null>(null);
 
+  const [initialPendingOrder, setInitialPendingOrder] = useState(() => {
+    if (!userId) return null;
+
+    const attempt = readPendingOrder(userId);
+
+    return attempt ? { userId, attempt } : null;
+  });
+
+  const [recoveryOutcome, setRecoveryOutcome] = useState<{
+    result: "rejected" | "invalid";
+    message: string;
+  } | null>(null);
+
   if (session.status !== "authenticated") {
     return <p role="status">Autenticação necessária para continuar.</p>;
   }
@@ -786,6 +807,77 @@ export function CheckoutPage() {
         >
           Voltar ao catálogo
         </Link>
+      </section>
+    );
+  }
+
+  if (session.status === "authenticated" && recoveryOutcome) {
+    return (
+      <section className="mx-auto max-w-2xl space-y-5">
+        <h1 className="text-3xl font-bold">
+          {recoveryOutcome.result === "rejected"
+            ? "Pagamento recusado"
+            : "Pagamento não concluído"}
+        </h1>
+
+        <p
+          role="alert"
+          className="rounded-lg border border-border bg-card p-5 text-destructive"
+        >
+          {recoveryOutcome.message}
+        </p>
+
+        <p className="text-sm text-text-secondary">
+          A tentativa anterior foi encerrada. Revise os dados antes de realizar
+          outra compra.
+        </p>
+
+        <div className="flex flex-wrap gap-4">
+          <button
+            type="button"
+            onClick={() => {
+              setRecoveryOutcome(null);
+            }}
+            className="min-h-11 rounded-md bg-primary px-5 font-semibold text-primary-foreground"
+          >
+            Voltar ao checkout
+          </button>
+
+          <Link
+            to="/cart"
+            className="inline-flex min-h-11 items-center text-primary underline underline-offset-4"
+          >
+            Revisar carrinho
+          </Link>
+        </div>
+      </section>
+    );
+  }
+
+  if (
+    session.status === "authenticated" &&
+    initialPendingOrder?.userId === session.user.id
+  ) {
+    return (
+      <section className="space-y-8">
+        <h1 className="text-3xl font-bold">Pagamento</h1>
+
+        <PendingOrderRecovery
+          key={initialPendingOrder.attempt.key}
+          userId={session.user.id}
+          attempt={initialPendingOrder.attempt}
+          onConfirmed={(order) => {
+            setInitialPendingOrder(null);
+            setConfirmedOrder(order);
+          }}
+          onFinished={(result, message) => {
+            setInitialPendingOrder(null);
+            setRecoveryOutcome({
+              result,
+              message,
+            });
+          }}
+        />
       </section>
     );
   }

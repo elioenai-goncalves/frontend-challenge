@@ -859,11 +859,27 @@ Resposta:
 - Não é apresentada confirmação antes da resposta
   efetivamente confirmada pela API.
 
-### Recuperação pendente
+### Recuperação após refresh
 
-Na Etapa 3, o checkout deverá consultar tentativas
-pendentes também após refresh, antes de apresentar
-o estado de carrinho vazio.
+- `pending-order.ts` persiste tentativas por usuário.
+- `PendingOrderRecovery` recupera tentativas após remontagem.
+- A tentativa pendente tem precedência sobre carregamento,
+  erro e estado vazio do carrinho.
+- O primeiro acesso à recuperação inicia uma verificação.
+- O evento `online` também dispara uma nova verificação.
+- `inFlight` impede chamadas simultâneas.
+- A recuperação reutiliza a Idempotency-Key original.
+- O payload original também é reutilizado integralmente.
+- O frontend não cria uma nova cotação durante o replay.
+- Confirmações vêm da resposta efetiva da API.
+- Pedidos rejeitados não são tratados como confirmados.
+- Erros inconclusivos mantêm a tentativa persistida.
+- Trocas de sessão não autorizam recuperar pedidos de
+  outro usuário.
+- O MSW garante idempotência, inclusive após a
+  confirmação do pedido e remoção dos itens comprados.
 
-O objetivo é recuperar pagamentos cujo resultado
-foi perdido sem criar um segundo pedido.
+### Limitação
+
+A página de confirmação completa, com recibo imutável
+e acesso por identificador, será implementada na Issue 19.

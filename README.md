@@ -310,12 +310,44 @@ Cada nova tentativa recebe uma Idempotency-Key única.
 - sold-out: estoque insuficiente, compra impedida.
 - order-timeout: resposta perdida após o pedido ser gravado.
 
-### Continuidade
+### Recuperação de pagamentos
 
-A recuperação após refresh, inclusive com carrinho vazio,
-será finalizada na Etapa 3 da Issue 18.
+O checkout mantém uma tentativa pendente por usuário em
+localStorage.
 
-A página completa de recibo pertence à Issue 19.
+Cada registro contém:
+
+- Idempotency-Key original.
+- Corpo exato da requisição de criação do pedido.
+- Data de criação da tentativa.
+
+Após refresh, o checkout verifica se existe uma tentativa
+pendente antes de apresentar o estado de carrinho vazio.
+
+Quando encontra uma tentativa:
+
+- Exibe o estado de verificação do pagamento.
+- Reenvia a requisição original automaticamente.
+- Não gera outra chave de idempotência.
+- Não cria uma nova cotação para recuperar o pedido.
+- Oferece verificação manual em caso de falha.
+- Repete a verificação quando a conexão do navegador volta.
+
+Resultados:
+
+- Confirmed: exibe sucesso e remove a tentativa pendente.
+- Rejected: exibe recusa e permite revisar outra compra.
+- Pending: mantém a tentativa sem iniciar outra compra.
+- Falha de rede ou 5xx: mantém a tentativa para recuperação.
+- Falha conclusiva de negócio: encerra a tentativa inválida.
+
+O carrinho pode já estar vazio após um timeout caso o MSW
+tenha confirmado o pedido antes de perder a resposta.
+
+O mecanismo de idempotência impede a criação de pedidos
+duplicados quando a mesma chave e o mesmo corpo são reenviados.
+
+A tela completa do recibo pertence à Issue 19.
 
 # React + TypeScript + Vite
 
